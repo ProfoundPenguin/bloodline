@@ -1,0 +1,1506 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="HandheldFriendly" content="true" />
+    <script src="https://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <style>
+        body {
+            background-color: #2c2c2c;
+        }
+        .loading-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .loading-line {
+    width: 50%;
+    max-width: 150px;
+    height: 3px;
+    background-color: #1E1E1E;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loading-inner-line {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #E6D2AA;
+    animation: stretch 2s infinite cubic-bezier(0.25, 0.1, 0.25, 1) alternate;
+  }
+
+  @keyframes stretch {
+    0% {
+      width: 50%;
+      left: 0;
+      transform: scaleX(1);
+    }
+    25% {
+      width: 100%;
+      left: 0;
+      transform: scaleX(1.1);
+    }
+    50% {
+      width: 50%;
+      left: 50%;
+      transform: scaleX(1);
+    }
+    75% {
+      width: 100%;
+      left: 50%;
+      transform: scaleX(1.1);
+    }
+    100% {
+      width: 50%;
+      left: 0;
+      transform: scaleX(1);
+    }
+  }
+    </style>
+    <title>Dawlad Murad Ancestr</title>
+
+    <link rel="stylesheet" href="{% static 'style/basic.css' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Gulzar&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        var tx;
+        var ty; 
+        var detailsOpen = false;
+        var menuOpen = false;
+        const realURL = window.location.protocol + '//' + window.location.host + window.location.pathname;
+
+        function lang() {
+            document.body.classList.toggle("farsi")
+        }
+        freeViewMode = true
+
+        zoomedMode = {
+            node: "#node1"
+        }
+        freeMode = {
+            x: 0,
+            y: 0,
+            scale: 1
+        }
+
+        
+
+        function mode() {
+            if (freeViewMode) {
+                document.body.classList.remove("freeMode")
+                centerChildOnScreen(document.querySelector(zoomedMode.node))
+                freeViewMode = false
+            } else {
+                document.body.classList.add("freeMode")
+                freeViewMode = true
+            }
+        }
+        function loaded() {
+            applyChanges()
+            centerChildOnScreen(document.querySelector("#node"+startingId), 0)
+            document.body.classList.add("loaded")
+            var loadingContainer = document.querySelector('.loading-container');
+            loadingContainer.style.display = 'none';
+        }
+
+        var startingId = 1
+    </script>
+
+</head>
+
+<div id="personaldetail">
+    <div id="content">
+        <button id="more" onclick="moreInfo()">
+            <img src="{% static 'img/icon/x.png' %}" id="x">
+        </button>
+        <div id="langaugeSwap">
+            <div id="person" class="english">
+                <h1></h1>
+                <p id="sons"></p>
+                <p id="gen"></p>
+            </div>
+            <div id="person" class="farsi">
+                <h1></h1>
+                <p id="sons"></p>
+                <p id="gen"></p>
+            </div>
+        </div>
+        <ul>
+            <!-- <li class="active">
+                <div id="title" onclick="dropDown(this.parentNode)">
+                    <h1>Lineage</h1>
+                    <svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8.90625" y="1.19397" width="10.9069" height="1.68853" rx="0.844266" transform="rotate(135 8.90625 1.19397)" fill="#111111"/>
+                    <rect x="14.2559" y="8.90638" width="10.8574" height="1.68853" rx="0.844266" transform="rotate(-135 14.2559 8.90638)" fill="#111111"/>
+                    </svg>
+                </div>
+                <ul>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                </ul>
+            </li> -->
+            <!-- <li>
+                <div id="title" onclick="dropDown(this.parentNode)">
+                    <h1>Descendants</h1>
+                    <svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8.90625" y="1.19397" width="10.9069" height="1.68853" rx="0.844266" transform="rotate(135 8.90625 1.19397)" fill="#111111"/>
+                    <rect x="14.2559" y="8.90638" width="10.8574" height="1.68853" rx="0.844266" transform="rotate(-135 14.2559 8.90638)" fill="#111111"/>
+                    </svg>
+                </div>
+                <ul>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                </ul>
+            </li> -->
+            <!-- <li>
+                <div id="title" onclick="dropDown(this.parentNode)">
+                    <h1>Cousins</h1>
+                    <svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8.90625" y="1.19397" width="10.9069" height="1.68853" rx="0.844266" transform="rotate(135 8.90625 1.19397)" fill="#111111"/>
+                    <rect x="14.2559" y="8.90638" width="10.8574" height="1.68853" rx="0.844266" transform="rotate(-135 14.2559 8.90638)" fill="#111111"/>
+                    </svg>
+                </div>
+                <ul>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                    <li><h2>Beth Cornagron</h2><h3>Father</h3></li>
+                </ul>
+            </li> -->
+        </ul>
+    </div>
+</div>
+
+<body class="moreInfo farsi" onload="loaded()">
+    <div class="loading-container">
+        <div class="loading-line">
+          <div class="loading-inner-line"></div>
+        </div>
+      </div>
+    <div id="banner">
+        <div id="content">
+            <div id="search" onclick="mobile_search()" class="small_screen">
+                <img src="{% static 'img/icon/search.png' %}" alt="Search">
+            </div>
+            <div id="more" onclick="moreInfo()">
+                <p id="person" class="gulzar"></p><p id="title">در باره</p>
+            </div>
+            <button onclick="mode()" class="removed_feature">
+                <img src="{% static 'img/icon/viewMode.png' %}">
+                FREE MODE
+            </button>
+            <button class="moreInfo">
+                <img src="{% static 'img/icon/jump.png' %}">
+                More Info
+            </button>
+            <div id="searchPlate">
+                <div id="search" class="big_screen">
+                    <input type="text" placeholder="Search">
+                    <button>
+                        <img src="{% static 'img/icon/search.png' %}" alt="Search">
+                    </button>
+                </div>
+                <div id="results">
+                    <ul>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="menu" onclick="menu()">
+            <div id="line">
+                <div id="dash" class="blank"></div>
+                <div id="dash"></div>
+                <div id="dash"></div>
+            </div>
+            <div id="line">
+                <div id="dash"></div>
+                <div id="dash"></div>
+                <div id="dash"></div>
+            </div>
+            <div id="line">
+                <div id="dash"></div>
+                <div id="dash"></div>
+                <div id="dash" class="blank"></div>
+            </div>
+        </div>
+        <div id="menuBox">
+            <div id="loggedAs">
+                <p>Logged as </p>
+                <h1>A Family Member</h1>
+            </div>
+            <div id="searchPlateMobile" class="small_screen">
+                <div id="search">
+                    <input type="text" placeholder="Search">
+                    <button>
+                        <img src="{% static 'img/icon/search.png' %}" alt="Search">
+                    </button>
+                </div>
+                <div id="results">
+                    <ul>
+                    </ul>
+                </div>
+            </div>
+            <div id="options">
+                <p id="message">قومای عالیقدر با عرض نهایت احترام 
+                    اشخاص که اسپیل اسم مبارک شان کدام مشکل بر می‌خرند و یا پسر  نو زاد تولد می‌شود در link زیر در خواست نمایند. تشکر</p>
+                <a href="request">Request a change</a>
+                
+            </div>
+            <div id="menuFooter">
+                <p>Web app is designed and built by Habibullah Noori</p>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <div id="tree">
+        
+    </div>
+    <div id="bottomSection">
+        <div id="shadow"></div>
+        <p class="farsi">ترتیب کننده <span class="farsi" onclick="centerChildOnScreen(document.querySelector('#node'+330))">سلطان علي (احمدی)</span> سال ۱۳۶۷ ه.ق</p>
+    </div>
+
+
+
+    <div id="graphPlate">
+        <div id="graph">
+            <div id="topShader"></div>
+            <div id="bottomShader"></div>
+            <div id="rightShader"></div>
+            <div id="leftShader"></div>
+        </div>
+        <div id="topShader"></div>
+        <div id="bottomShader"></div>
+        <div id="rightShader"></div>
+        <div id="leftShader"></div>
+    </div>
+
+<script>
+    
+
+    function moreInfo() {
+        history.pushState({ path: realURL }, '', realURL);
+        if(!document.body.classList.contains('moreDetail')) {
+            const newURL = new URL(window.location.href);
+            window.history.pushState({ path: newURL.href }, '', newURL.href + '?a=details');
+        }
+        
+        applyChanges()
+        detailsOpen = !detailsOpen
+        menuOpen = false
+    }
+
+    function dropDown(element) {
+        var prevDropOpened = document.querySelector('ul li.active')
+        prevDropOpened.classList.remove("active")
+        element.classList.add("active")
+        prevDropOpened = element
+    }
+
+    function getData() {
+        return {{tree|safe}}
+    };
+
+    var translateX = 0
+    var translateY = 0
+
+    var globalScale = 1;
+
+    function findById(person, targetId) {
+        if (person.id === targetId) {
+            return person;
+        } else if (person.children && person.children.length > 0) {
+            for (let i = 0; i < person.children.length; i++) {
+                const found = findById(person.children[i], targetId);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    function getCousinsById(data, targetId) {
+        let cousins = [];
+        var grandfather
+
+        if (findById(data, findById(data, targetId).father)) {
+            grandfather = findById(data, findById(data, findById(data, targetId).father).father);
+        } else {
+            return null
+        }
+        if (findById(data, findById(data, findById(data, targetId).father).father) != null) {
+        grandfather.children.forEach(child => {
+            console.log(findById(data, targetId).father);
+            if (child.id != findById(data, targetId).father) {
+                child.children.forEach(c => {
+                    cousins.push(c)
+                })
+            }
+            
+        });
+    }
+        
+        return cousins;
+    }
+
+    function getDescendantsById(data, id) {
+        const person = findPersonById(data, id);
+        const startingGen = findById(data, id).gen
+        const descendants = [];
+        if (person) {
+            getChildren(person);
+        }
+        return descendants;
+
+        function getChildren(node) {
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    while (descendants.length < child.gen - startingGen) {
+                        descendants.push([])
+                    }
+                    descendants[child.gen - startingGen - 1].push(child);
+                    getChildren(child);
+                });
+            }
+        }
+
+        function findPersonById(node, id) {
+            if (node.id === id) {
+            return node;
+            }
+            if (node.children && node.children.length > 0) {
+            for (const child of node.children) {
+                const found = findPersonById(child, id);
+                if (found) {
+                return found;
+                }
+            }
+            }
+            return null;
+        }
+    }
+
+
+    function details(nodeId) {
+
+        const treeDataForDetails = getData()
+        document.querySelector("#banner #content #more p#person").innerHTML = findById(treeDataForDetails, nodeId).farsi_name
+        var dropDownSvg = `<svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="8.90625" y="1.19397" width="10.9069" height="1.68853" rx="0.844266" transform="rotate(135 8.90625 1.19397)" fill="#111111"/>
+                        <rect x="14.2559" y="8.90638" width="10.8574" height="1.68853" rx="0.844266" transform="rotate(-135 14.2559 8.90638)" fill="#111111"/>
+                        </svg>`
+
+        const personBox = document.querySelector("#personaldetail #person.english")
+        personBox.querySelector("h1").innerHTML = findById(treeDataForDetails, nodeId).first_name + " " + findById(treeDataForDetails, nodeId).last_name
+        var sons = findById(treeDataForDetails, nodeId).children.length
+
+        if(sons > 0) {
+            personBox.querySelector("p#sons").innerHTML = sons + " Sons"
+        }
+        personBox.querySelector("p#gen").innerHTML = findById(treeDataForDetails, nodeId).gen + "th Generation"
+
+        const personBoxFarsi = document.querySelector("#personaldetail #person.farsi")
+        personBoxFarsi.querySelector("h1").innerHTML = findById(treeDataForDetails, nodeId).farsi_name
+        var sons = findById(treeDataForDetails, nodeId).children.length
+
+        if(sons > 0) {
+            personBoxFarsi.querySelector("p#sons").innerHTML = sons + " پسر"
+        } else {
+            personBoxFarsi.querySelector("p#sons").innerHTML = ""
+        }
+        personBoxFarsi.querySelector("p#gen").innerHTML = findById(treeDataForDetails, nodeId).gen + "th نسل"
+
+        var parents = findParents(treeDataForDetails, nodeId).reverse()
+        var des = getDescendantsById(treeDataForDetails, nodeId)
+        var cousins = getCousinsById(treeDataForDetails, nodeId)
+
+        const mainList = document.querySelector('#personaldetail #content ul')
+        mainList.innerHTML = ""
+
+        if(parents.length != 0) {
+            const li = document.createElement('li');
+
+            const div = document.createElement('div');
+            div.setAttribute('id', 'title');
+            div.setAttribute('onclick', 'dropDown(this.parentNode)');
+
+            const leftSide = document.createElement('div');
+            leftSide.setAttribute('id', 'lefty');
+
+            leftSide.innerHTML += dropDownSvg
+
+            const counter = document.createElement('div');
+            counter.setAttribute('id', 'counter');
+
+            leftSide.appendChild(counter)
+
+            div.appendChild(leftSide)
+
+            const h1farsi = document.createElement('h1');
+            h1farsi.classList.add("farsi")
+            h1farsi.textContent = 'اجداد';
+
+            const h1 = document.createElement('h1');
+            h1.classList.add("english")
+            h1.textContent = 'Lineage';
+
+            const ul = document.createElement('ul');
+            
+            counter.innerHTML = parents.length
+
+            for(var x = 0;x < parents.length;x++) {
+                var relation = "Father"
+                
+                if(x == 1) {
+                    relation = "GrandFather"
+                } else if(x == 2) {
+                    relation = "Great-GrandFather"
+                } else if(x > 2) {
+                    relation = `(Great X${x-1})-GrandFather`
+                }
+
+                var innerLi = document.createElement('li');
+                innerLi.setAttribute('onclick', "centerChildOnScreen(null, undefined, undefined," + parents[x].id + ")");
+                var langaugeSwap = document.createElement('div')
+                langaugeSwap.setAttribute("id", "langaugeSwap")
+                var h2 = document.createElement('h2');
+                h2.classList.add("english")
+                h2.textContent = parents[x].first_name + parents[x].last_name;
+
+                var h2farsi = document.createElement('h2');
+                h2farsi.classList.add("farsi")
+                h2farsi.textContent = parents[x].farsi_name
+
+                var h3 = document.createElement('h3');
+                h3.textContent = relation;
+                
+                innerLi.appendChild(langaugeSwap);
+                langaugeSwap.appendChild(h2);
+                langaugeSwap.appendChild(h2farsi);
+                innerLi.appendChild(h3);
+                ul.appendChild(innerLi);
+            }
+
+
+            div.appendChild(h1);
+            div.appendChild(h1farsi);
+            li.appendChild(div);
+            li.appendChild(ul);
+
+            mainList.appendChild(li)
+        }
+
+        if(des.length != 0) {
+            const li = document.createElement('li');
+
+            const div = document.createElement('div');
+            div.setAttribute('id', 'title');
+            div.setAttribute('onclick', 'dropDown(this.parentNode)');
+
+            const leftSide = document.createElement('div');
+            leftSide.setAttribute('id', 'lefty');
+
+            leftSide.innerHTML += dropDownSvg
+
+            const counter = document.createElement('div');
+            counter.setAttribute('id', 'counter');
+
+            leftSide.appendChild(counter)
+
+            div.appendChild(leftSide)
+
+            const h1farsi = document.createElement('h1');
+            h1farsi.classList.add("farsi")
+            h1farsi.textContent = 'زادگان';
+
+            const h1 = document.createElement('h1');
+            h1.classList.add("english")
+            h1.textContent = 'Descendants';
+
+            const ul = document.createElement('ul');
+
+            personCounter = 0
+
+            for(var x = 0;x < des.length;x++) {
+                for(var y = 0;y < des[x].length;y++) {
+                    personCounter++
+                    var relation = "Son"
+                    
+                    if(x == 1) {
+                        relation = "GrandSon"
+                    } else if(x == 2) {
+                        relation = "Great-GrandSon"
+                    } else if(x > 2) {
+                        relation = `(Great X${x-1})-GrandSon`
+                    }
+
+                    var innerLi = document.createElement('li');
+                    
+                    innerLi.setAttribute('onclick', "centerChildOnScreen(null, undefined, undefined," + des[x][y].id + ")");
+
+                    var langaugeSwap = document.createElement('div')
+                    langaugeSwap.setAttribute("id", "langaugeSwap")
+                    var h2 = document.createElement('h2');
+                    h2.classList.add("english")
+                    h2.textContent = des[x][y].first_name + des[x][y].last_name;
+
+                    var h2farsi = document.createElement('h2');
+                    h2farsi.classList.add("farsi")
+                    h2farsi.textContent = des[x][y].farsi_name
+                    
+                    var h3 = document.createElement('h3');
+                    h3.textContent = relation;
+
+                    innerLi.appendChild(langaugeSwap);
+                    langaugeSwap.appendChild(h2);
+                    langaugeSwap.appendChild(h2farsi);
+                    innerLi.appendChild(h3);
+                    ul.appendChild(innerLi);
+                }
+            }
+
+            
+            counter.innerHTML = personCounter
+
+
+            div.appendChild(h1);
+            div.appendChild(h1farsi);
+            li.appendChild(div);
+            li.appendChild(ul);
+
+            mainList.appendChild(li)
+
+            
+        }
+
+        if(cousins != null) {
+            const li = document.createElement('li');
+
+            const div = document.createElement('div');
+            div.setAttribute('id', 'title');
+            div.setAttribute('onclick', 'dropDown(this.parentNode)');
+
+            const leftSide = document.createElement('div');
+            leftSide.setAttribute('id', 'lefty');
+
+            leftSide.innerHTML += dropDownSvg
+
+            const counter = document.createElement('div');
+            counter.setAttribute('id', 'counter');
+
+            leftSide.appendChild(counter)
+
+            div.appendChild(leftSide)
+
+            const h1farsi = document.createElement('h1');
+            h1farsi.classList.add("farsi")
+            h1farsi.textContent = 'پسران کاکا';
+
+            const h1 = document.createElement('h1');
+            h1.classList.add("english")
+            h1.textContent = 'Cousins';
+
+            const ul = document.createElement('ul');
+            
+            counter.innerHTML = cousins.length
+
+            for(var x = 0;x < cousins.length;x++) {
+                var innerLi = document.createElement('li');
+                innerLi.setAttribute('onclick', "centerChildOnScreen(null, undefined, undefined," + cousins[x].id + ")");
+                var langaugeSwap = document.createElement('div')
+                langaugeSwap.setAttribute("id", "langaugeSwap")
+                var h2 = document.createElement('h2');
+                h2.classList.add("english")
+                h2.textContent = cousins[x].first_name + cousins[x].last_name;
+
+                var h2farsi = document.createElement('h2');
+                h2farsi.classList.add("farsi")
+                h2farsi.textContent = cousins[x].farsi_name
+
+                
+                innerLi.appendChild(langaugeSwap);
+                langaugeSwap.appendChild(h2);
+                langaugeSwap.appendChild(h2farsi);
+                ul.appendChild(innerLi);
+            }
+
+
+            div.appendChild(h1);
+            div.appendChild(h1farsi);
+            li.appendChild(div);
+            li.appendChild(ul);
+
+            mainList.appendChild(li)
+            
+        }
+        document.querySelector("#personaldetail #content ul li:first-child").classList.add("active")
+    }
+
+    function findParentsForPaths(tree, nodeId, path = []) {
+        // Base case: if the tree is empty or if the node is not found
+        if (!tree || !tree.id) {
+            return [];
+        }
+
+        // Check if the current node is the target node
+        if (tree.children) {
+            for (let child of tree.children) {
+                if (child.id === nodeId) {
+                    return [...path, child.id, tree.id]; // Found the node, return the path
+                } else {
+                    const found = findParentsForPaths(child, nodeId, [...path, tree.id]);
+                    if (found.length > 0) {
+                        return found; // Found in the child's subtree
+                    }
+                }
+            }
+        }
+        
+        return []; // Node not found in this branch
+    }
+
+    function findParents(tree, nodeId, path = []) {
+        // Base case: if the tree is empty or if the node is not found
+        if (!tree || !tree.id) {
+            return [];
+        }
+
+        // Check if the current node is the target node
+        if (tree.children) {
+            for (let child of tree.children) {
+                if (child.id === nodeId) {
+                    return [...path, tree]; // Found the node, return the path
+                } else {
+                    const found = findParents(child, nodeId, [...path, tree]);
+                    if (found.length > 0) {
+                        return found; // Found in the child's subtree
+                    }
+                }
+            }
+        }
+
+        return []; // Node not found in this branch
+    }
+
+
+    function bringToFront(svgElement) {
+        const svg = document.querySelector("#tree svg g g"); // Get the parent SVG
+        svg.appendChild(svgElement); // Append the element to move it to the top
+    }
+
+    function clicked(d) {
+    active = d3.select(this).classed("active", true);
+
+    var rect = active.node().getBoundingClientRect();
+    var childRect = {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height
+    };
+
+    var offsetX = (window.innerWidth - childRect.width) / 2 - ((childRect.left)),
+        offsetY = (window.innerHeight - childRect.height) / 2 - ((childRect.top));
+
+    var scale = 1,
+        translate = [offsetX, offsetY];
+
+    svg.transition()
+        .duration(750)
+        .call(zoom.translate(translate).scale(scale).event);
+}
+
+
+
+    function centerChildOnScreen(childElement, duration = 200, scale = 1, id = null) {  
+
+        
+        
+
+        if(id != null) {
+            console.log("Not Null");
+            childElement = document.getElementById("node" + id)
+            moreInfo()
+        }
+
+        console.log(childElement);
+        document.body.classList.remove("noTimeline")
+        details(parseInt(childElement.id.slice(4)))
+        zoomedMode.node = "#"+childElement.id
+
+        document.querySelectorAll("#tree div.node").forEach((e)=> {
+            if (e.id == childElement.id && e.id != "node"+startingId) {
+                e.classList.add("highlight")
+            } else {
+                e.classList.remove("highlight")
+            }
+        })
+
+        parents = findParentsForPaths(getData(), parseInt(childElement.id.slice(4)))
+
+        document.querySelectorAll("#tree svg path").forEach((e)=> {
+            if(parents.includes(parseInt(e.getAttribute('source'))) && parents.includes(parseInt(e.getAttribute('target')))){
+                e.classList.add("highlight")
+                bringToFront(e)
+            } else {
+                e.classList.remove("highlight")
+            }
+        })
+
+        const parentElement = document.querySelector("#tree svg g");
+        const graph = document.querySelector("#graphPlate #graph");
+
+        // zoomto(offsetX, offsetY, 1);
+
+        function center(scaleOnly, trans = "0.4") {
+            const transformValue = window.getComputedStyle(parentElement).transform;
+
+            const match = transformValue.match(/matrix\(([^)]+)\)/);
+
+            if (match) {
+                // Extracting values from the matrix
+                const matrixValues = match[1].split(', ');
+                // Getting translateX and translateY values
+                translateX = parseFloat(matrixValues[4]);
+                translateY = parseFloat(matrixValues[5]);
+            }
+
+            const childRect = childElement.getBoundingClientRect();
+            
+            var offsetX;
+            var offsetY;
+            if (childElement.id === 'node'+startingId) {
+                var headerHeight = document.querySelector('#whereitbegan').offsetHeight;
+
+                offsetX = (window.innerWidth - (childRect.width)) / 2 - ((childRect.left) - translateX);
+                offsetY = 0;
+            } else {
+                offsetX = (window.innerWidth - childRect.width) / 2 - ((childRect.left) - translateX);
+                offsetY = (window.innerHeight - childRect.height) / 2 - ((childRect.top) - translateY);
+            }
+
+
+
+            if(!scaleOnly){
+                const translateValue = `translate3d(${offsetX}px, ${offsetY}px, 0px) scale3d(1,1,1)`;
+                parentElement.style.transition = trans+"s";
+                parentElement.style.transform = translateValue;
+                zoomto(offsetX, offsetY, 1);
+            } else {
+                const translateValue = `translate3d(${translateX}px, ${translateY}px, 0px) scale3d(1,1,1)`;
+                parentElement.style.transition = trans+"s";
+                parentElement.style.transform = translateValue;
+                zoomto(translateX, translateY, 1);
+            }
+            
+           
+
+            defaultScale = 1;
+        }
+        if(defaultScale != 1) {
+            center(true, "0")
+            setTimeout(()=> {
+                center(false, "0")
+            }, 0)
+        } else {
+            center(false)
+        }
+    }   
+
+</script>
+
+<script>
+    var searchPlate = document.querySelector("#banner #searchPlate")
+    var searchInput = document.querySelector("#banner #search input")
+    var searchInputMobile = document.querySelector("#banner #searchPlateMobile #search input")
+    var searchList = document.querySelector("#banner #searchPlate ul")
+    var searchListMobile = document.querySelector("#banner #searchPlateMobile ul")
+
+    function search(theData, searchString, matches = []) {
+        if (theData.farsi_name && (theData.farsi_name.toLowerCase().includes(searchString.toLowerCase()))) {
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(data, theData.father).farsi_name +")" + "</li>");
+        } else if(theData.first_name && (theData.first_name.toLowerCase().includes(searchString.toLowerCase())))  {
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(data, theData.father).farsi_name  +")" + "</li>");
+        }
+        if (theData.children && theData.children.length > 0) {
+            for (let i = 0; i < theData.children.length; i++) {
+                search(theData.children[i], searchString, matches);
+            }
+        }
+        
+        if (searchString != "") {
+            return matches;
+        } else {
+            return []
+        }
+    }
+
+    searchInput.addEventListener('keyup', ()=> {
+        var value = searchInput.value
+        searchList.innerHTML = ""
+        search(getData(), value).forEach(data => {
+            searchList.innerHTML += data
+        });
+    })
+    searchInputMobile.addEventListener('keyup', ()=> {
+        var value = searchInputMobile.value
+        searchListMobile.innerHTML = ""
+        search(getData(), value).forEach(data => {
+            searchListMobile.innerHTML += data
+        });
+    })
+    searchInput.addEventListener('focusin', ()=> {
+        document.body.classList.add("search")
+        var value = searchInput.value
+        if (value != "") {
+            searchList.innerHTML = ""
+            search(getData(), value).forEach(data => {
+                searchList.innerHTML += data
+            });
+        }
+    })
+    // searchInput.addEventListener('focusout', ()=> {
+    //         searchList.innerHTML = ""
+    // })
+    searchInputMobile.addEventListener('focusin', ()=> {
+        document.body.classList.add("searchMobile")
+        var value = searchInputMobile.value
+        if (value != "") {
+            searchListMobile.innerHTML = ""
+            search(getData(), value).forEach(data => {
+                searchListMobile.innerHTML += data
+            });
+        }
+    })
+
+    function dramaticZoom(id) {
+        document.body.classList.remove("menu")
+        document.querySelector("#searchPlateMobile #results ul").innerHTML = ""
+        searchList.innerHTML = ""
+        
+        var node = document.querySelector('#node'+id)
+
+        node.style.animation = "blink 1s 2";
+
+        centerChildOnScreen(node, 500)
+
+        setTimeout(()=> {
+            node.style.animation = "";
+        }, 1000)
+    }
+    const menuBox = document.querySelector("#banner")
+
+    let isDragging = false;
+let startX = 0;
+let startY = 0;
+
+document.addEventListener('mousedown', (event) => {
+  startX = event.clientX;
+  startY = event.clientY;
+
+  document.addEventListener('mousemove', onMouseMove);
+
+  function onMouseMove() {
+    const currentX = event.clientX;
+    const currentY = event.clientY;
+
+    const distanceX = Math.abs(currentX - startX);
+    const distanceY = Math.abs(currentY - startY);
+
+    if (distanceX > 50 || distanceY > 50) {
+      isDragging = true;
+      document.removeEventListener('mousemove', onMouseMove);
+    }
+  }
+});
+
+document.addEventListener('mouseup', (event) => {
+  if (!isDragging) {
+    const endX = event.clientX;
+    const endY = event.clientY;
+
+    const distanceX = Math.abs(endX - startX);
+    const distanceY = Math.abs(endY - startY);
+
+    if (distanceX <= 50 && distanceY <= 50) {
+        handleClick(event);
+    }
+  }
+  isDragging = false;
+});
+
+
+    function handleClick(event) {
+        if (!searchPlate.contains(event.target)) {
+            searchList.innerHTML = ""
+            document.body.classList.remove("search")
+        }
+        if (!searchPlateMobile.contains(event.target)) {
+            searchListMobile.innerHTML = ""
+            document.body.classList.remove("searchMobile")
+        }
+        if (!menuBox.contains(event.target)) {
+            document.body.classList.remove("menu");
+        }
+    }
+</script>
+
+<script>
+function createGrid(width, height, gap) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('id', "graphSvg");
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+
+    const rows = Math.floor(height / gap);
+    const cols = Math.floor(width / gap);
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+        const rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('x', j * gap);
+        rect.setAttribute('y', i * gap);
+        rect.setAttribute('width', gap);
+        rect.setAttribute('height', gap);
+        rect.setAttribute('stroke', '#333333');
+        rect.setAttribute('stroke-width', '0.1');
+        rect.setAttribute("shape-rendering","crispEdges")
+        rect.setAttribute('fill', 'none');
+        svg.appendChild(rect);
+        }
+    }
+
+    document.querySelector('#graphPlate #graph').appendChild(svg);
+    return document.querySelector('#graphPlate #graph')
+}
+</script>
+
+<script>
+    let displayDefaultWidth
+    let displayDefaultHeight
+    var width, height
+
+    function scrollToSelectedTag(tagId) {
+    // Get the selected text tag inside the SVG
+    var selectedTag = document.getElementById(tagId);
+
+    if (selectedTag) {
+        // Get the container and the SVG elements
+        var container = document.getElementById('tree');
+        var svg = container.querySelector('svg');
+
+        // Get the bounding box of the selected text tag
+        var bbox = selectedTag.getBBox();
+
+        // Calculate the position of the selected text tag relative to the SVG and the container
+        var tagPositionX = bbox.x + bbox.width / 2;
+        var tagPositionY = bbox.y + bbox.height / 2;
+
+        // Calculate the scroll positions to center the selected text tag in the container
+        var containerWidth = container.clientWidth;
+        var containerHeight = container.clientHeight;
+        var svgWidth = svg.clientWidth;
+        var svgHeight = svg.clientHeight;
+
+        var scrollX = (tagPositionX * svgWidth / containerWidth) - containerWidth / 2;
+        var scrollY = (tagPositionY * svgHeight / containerHeight) - containerHeight / 2;
+
+        // Scroll the container to bring the selected text tag to the center of the screen
+        container.scrollTo(scrollX, scrollY);
+    }
+    }
+
+    function calculateDimensions(node, currentRow = 0, currentCol = 0) {
+        if (!node.children || node.children.length === 0) {
+            return { rows: currentRow + 1, cols: currentCol + 1 };
+        }
+
+        let maxRow = currentRow;
+        let maxCol = currentCol;
+
+        node.children.forEach((child) => {
+            const dimensions = calculateDimensions(child, currentRow + 1, currentCol + 1);
+            maxRow = Math.max(maxRow, dimensions.rows);
+            maxCol += dimensions.cols; // Summing up the number of columns at each level
+        });
+
+        return { rows: maxRow, cols: maxCol };
+        }
+
+    function getMaxDepth(node) {
+        if (node.children.length === 0) {
+            return 0;
+        } else {
+            let maxChildDepth = 0;
+            for (const child of node.children) {
+            const childDepth = getMaxDepth(child);
+            if (childDepth > maxChildDepth) {
+                maxChildDepth = childDepth;
+            }
+            }
+            return maxChildDepth + 1;
+        }
+        }
+
+    const treeCanvas = document.querySelector("#tree"); // Assuming treeCanvas is an element with id "treeCanvas"
+
+    var margin = { top: 0, right: 50, bottom: 300, left: 50 }
+    // var margin = { top: 0, right: 0, bottom: 0, left: 0 }
+
+    // width = (calculateDimensions(getData()).cols * 50) - margin.left - margin.right,
+    // width = 15500 - margin.left - margin.right,
+    width = 45000 - margin.left - margin.right,
+    // // height = (calculateDimensions(getData()).rows * 200) - margin.top - margin.bottom;
+    height = (calculateDimensions(getData()).rows * 220) - margin.top - margin.bottom;
+
+    // height = (calculateDimensions(getData()).rows * 200) - margin.top - margin.bottom;
+    var m = [20, 120, 20, 120],
+        w = 1380 - m[1] - m[3],
+        h = 800 - m[0] - m[2],
+        i = 0;
+
+    function handleTreeClick(d){
+        // 'd' represents the clicked node data
+        var nodeClicked = d;
+
+        // Get the current transform values
+
+        // Calculate the new translation to center the clicked node
+        var windowWidth = window.innerWidth;
+        var windowHeight = window.innerHeight;
+
+        // Calculate the center coordinates of the window
+        var centerX = windowWidth / 2;
+        var centerY = windowHeight / 2;
+
+        // Calculate the translation required to center the node
+        var nodeX = nodeClicked.x + tx;
+        var nodeY = nodeClicked.y + ty;
+
+        var translateX = centerX - nodeX;
+        var translateY = centerY - nodeY;
+
+        // Apply the transform to center the node
+        d3.select("svg g").transition()
+            .duration(750) // You can adjust the duration as needed
+            .style('transform', 'translate3d(' + translateX + 'px,' + translateY + 'px, 0px) scale3d(1,1,1)');
+    }
+
+    var defaultScale = 1;
+
+    const grid = createGrid((width + margin.left + margin.right) * 0.7, (height + margin.top + margin.bottom) * 0.7, 30);
+    
+    var tree = d3.layout.tree()
+        .separation(function (a, b) { return a.parent === b.parent ? 1 : 1.5; })
+        .children(function (d) { return d.children; })  // Adjusted to use 'children' property
+        .size([width, height]);    
+
+    var svg = d3.select(treeCanvas)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + (70 + innerHeight / 2) + ")");
+
+    var nodes = tree.nodes(getData());
+
+    var node = svg.selectAll(".node")
+        .data(nodes)
+        .enter()
+        .append("g");
+
+    node.append("foreignObject")
+    .attr("width", 180)
+    .attr("height", 120)
+    .attr("fill", "#111111")
+    .attr("x", function (d) { return d.x - 90; })
+    .attr("y", function (d) { return d.y - 60; })
+    .append("xhtml:div")
+    .style("width", "157px")
+    .style("height", "120px")
+    .append("xhtml:div")
+    // .on("click", handleTreeClick)
+    .attr("onclick", "centerChildOnScreen(this)")
+    .attr("id", function(d) {
+            return `node${d.id}`
+        })
+    .attr("class", "node")
+    .style("width", "157px")
+    .style("height", "auto")
+    .style("padding", "15px 10px")
+    .html(function(d) {
+        return `
+            <div id="langaugeSwap">
+                <h1 id="nodeH1" class="english" style="font-size: 16px; color: #E6D2AA; text-decoration: underline; text-align: center;">
+                    ${d.first_name}
+                </h1>
+                <h1 id="nodeH1" class="farsi" style="font-size: 16px; color: #E6D2AA; text-decoration: underline; text-align: center;">
+                    ${d.farsi_name}
+                </h1>
+            </div>
+            ${d.num_children} 
+        `;
+    });
+
+    var theBigX = 0
+    var theBigY = 0
+
+    node.each(function(d, i) {
+        if(d.id == startingId) {
+            theBigX = d.x
+            theBigY = d.y
+        }
+    })
+
+    console.log(theBigX);
+
+    const svgContainer = d3.select("svg g");
+
+    const foreignObject = svgContainer.append("foreignObject")
+    .attr("width", innerWidth)
+    .attr("height", innerHeight / 2)
+    .attr("x", theBigX - (innerWidth / 2) + 50) // Adjust x positioning relative to node position
+    .attr("y", theBigY + 40) // Adjust y positioning relative to node position
+    .attr("z", "-1")
+    .attr("style", "pointer-events: none;")
+
+    // Append HTML content to foreignObject
+    foreignObject.html('<div id="whereitbegan"><div id="langaugeSwap"><h1 class="english">Where it all began</h1><h1 class="farsi">گر تو سنگ سخره و مر مر شوی<br> چون به صاحب دل رسی گوهر شوی</h1></div></div>');
+    var path = d3.geo.path();
+
+    function getBoundsForNode(node) {
+        var nodes = tree.nodes(node); // Get all nodes in the subtree
+        var minX = d3.min(nodes, function(d) { return d.x; });
+        var minY = d3.min(nodes, function(d) { return d.y; });
+        var maxX = d3.max(nodes, function(d) { return d.x; });
+        var maxY = d3.max(nodes, function(d) { return d.y; });
+
+        return [[minX, minY], [maxX, maxY]];
+    }
+
+    var link = svg.selectAll(".link")
+        .data(tree.links(nodes))
+        .enter()
+        .insert("path", "g")
+        .attr("fill", "none")
+        .attr("stroke", "#E6D2AAF7")
+        .attr("shape-rendering", "crispEdges")
+        .attr("source", (d)=> {
+            return d.source.id;
+        })
+        .attr("target", (d)=> {
+            return d.target.id;
+        })
+        .attr("d", connect);
+        
+    const data = getData(); // Assuming getData() function holds the provided data
+
+    function findPersonById(data, firstId, secondId) {
+        function findPositionOfChild(childrenLength, index) {
+            if (childrenLength == 1) {
+                return 'onlyChild';
+            } else if (index === 0) {
+                return 'first';
+            } else if (index === childrenLength - 1) {
+                return 'last';
+            } else {
+                return 'middle';
+            }
+        }
+
+        function findPersonByIdHelper(person, targetId) {
+            if (person.id === targetId) {
+            return true;
+            }
+            if (person.children && person.children.length > 0) {
+                for (let i = 0; i < person.children.length; i++) {
+                    if (findPersonByIdHelper(person.children[i], targetId)) {
+                        return findPositionOfChild(person.children.length, i);
+                    }
+                }
+            }
+            return false;
+        }
+
+        function findPerson(person, targetId) {
+            if (person.id === firstId) {
+            return findPersonByIdHelper(person, targetId);
+            }
+            if (person.children && person.children.length > 0) {
+            for (let i = 0; i < person.children.length; i++) {
+                const result = findPerson(person.children[i], targetId);
+                if (result !== false) {
+                return result;
+                }
+            }
+            }
+            return false;
+        }
+
+        return findPerson(data, secondId);
+    }
+
+    function connect(d, i) {
+        // Calculate the y-coordinate for the 90-degree break
+        var breakPoint = ((3 * d.source.y + 4 * d.target.y) / 7);
+        var breakPointy = ((3 * d.source.y + 4 * d.target.y) / 7);
+        // Calculate the radius for the rounded corners
+        var cornerRadius = 15;
+
+        // Determine the direction of the line
+        var direction = d.source.x < d.target.x ? 1 : 1;
+
+        // Adjust the corner radius based on the line direction
+        var adjustedRadius = direction === 1 ? cornerRadius : cornerRadius;
+        
+        const v1 = { x: d.source.x, y: ((3 * d.source.y + 4 * d.target.y) / 7) };
+        const v2 = { x: d.target.x, y: d.target.y };
+
+        const dx = v2.x - v1.x;
+        const dy = v2.y - v1.y;
+        const dr = 15; // radius of the corner
+        const sweepFlag = (dx * dy > 0) ? 1 : 0;
+
+        const sourceId = d.source.id;
+        const targetId = d.target.id;
+
+        const numChildren = findPersonById(getData(), sourceId, targetId)
+
+        if(numChildren == "first") {
+            return "M" + d.source.x + "," + (d.source.y + 40)
+            + "V" + (breakPoint - cornerRadius * 2)                               
+            + "A" + cornerRadius + "," + cornerRadius + " 0 0 1" + " " + (d.source.x - adjustedRadius) + "," + (breakPoint - cornerRadius * 1 )
+            + "H" + (d.target.x + (cornerRadius * 1))
+            + "A" + cornerRadius + "," + cornerRadius + " 0 0 0" + " " + (d.target.x + (direction)) + "," + (breakPoint + cornerRadius * 0)
+            + "V" + (d.target.y - 60);
+        } else if(numChildren == "last") {
+            return "M" + d.source.x + "," + (d.source.y + 40)
+            + "V" + (breakPoint - adjustedRadius * 2)                               
+            + "A" + cornerRadius + "," + cornerRadius + " 1 0 0" + " " + (d.source.x + adjustedRadius * 1) + "," + (breakPoint - cornerRadius * 1 )
+            + "H" + (d.target.x - adjustedRadius + 1)
+            + "A" + cornerRadius + "," + cornerRadius + " 0 0 1" + " " + (d.target.x + (direction)) + "," + (breakPoint - adjustedRadius * 0)
+            + "V" + (d.target.y - 60);
+        } else if (numChildren == "onlyChild") {
+            return "M" + d.source.x + "," + (d.source.y + 40)
+            + "V" + (breakPoint - adjustedRadius)   
+            + "H" + d.target.x
+            + "V" + (d.target.y - 60);
+        } else {
+            if (d.target.x < d.source.x) {
+                return "M" + d.source.x + "," + (d.source.y + 40)
+                + "V" + (breakPoint - adjustedRadius * 2)   
+                + "M" + (d.source.x - adjustedRadius * 1) + "," + (breakPoint - cornerRadius * 1 )
+                + "H" + (d.target.x + adjustedRadius * 0)
+                + "M" + (d.target.x + (direction)) + "," + (breakPoint - adjustedRadius * 0)
+                + "V" + (d.target.y - 60);
+            } else if (d.target.x > d.source.x) {
+                return "M" + d.source.x + "," + (d.source.y + 40)
+                + "V" + (breakPoint - adjustedRadius * 2)   
+                + "M" + (d.source.x + adjustedRadius * 1) + "," + (breakPoint - cornerRadius * 1 )
+                + "H" + (d.target.x + adjustedRadius * 0)
+                + "M" + (d.target.x + (direction)) + "," + (breakPoint - adjustedRadius * 0)
+                + "V" + (d.target.y - 60);
+            } else {
+                return "M" + d.source.x + "," + (d.source.y + 40)
+                + "V" + (breakPoint - adjustedRadius * 2)   
+                + "M" + (d.source.x + adjustedRadius * 0) + "," + (breakPoint - cornerRadius * 2 )
+                + "H" + (d.target.x + adjustedRadius * 0)
+                + "M" + (d.target.x + (direction)) + "," + (breakPoint - adjustedRadius * 0)
+                + "V" + (d.target.y - 60);
+            }
+            return "M" + (d.target.x + (direction)) + "," + ((breakPoint + 40) + adjustedRadius * 1)
+            + "V" + ((breakPoint + 10) - adjustedRadius * 1)   
+            + "V" + (d.target.y - 60);
+        }
+        
+
+        
+        
+    }
+
+    var tree = d3.select("#tree");
+
+    var zoom = d3.behavior.zoom()
+        .scaleExtent([0.1, 5])
+        .on("zoom", zoomed);
+
+    tree.call(zoom);
+
+    function zoomto(x,y,s){
+        zoom.translate([x, y]).scale(s);
+    }
+    
+    function zoomed() {
+        document.body.classList.remove("search")
+        if (freeViewMode) {
+            const parentElement = document.querySelector("#tree svg")
+
+            const transformValue = window.getComputedStyle(parentElement).transform;
+
+            const match = transformValue.match(/matrix\(([^)]+)\)/);
+
+            if (match) {
+            // Extracting values from the matrix
+                const matrixValues = match[1].split(', ');
+
+                // Getting translateX and translateY values
+                tx = parseFloat(matrixValues[4]);
+                ty = parseFloat(matrixValues[5]);
+
+            }
+
+            var e = d3.event,
+            // Calculate the new translation based on the cursor position
+            tx = e.translate[0],
+            ty = e.translate[1],
+            scale = e.scale;
+
+
+
+            
+            var x = Math.max(Math.min((ty * 100) / (height * scale), 0), -100)
+
+            d3.select("svg g")
+                .attr("style", "transform: translate3d(" + tx + "px," + ty + "px, 0) scale3d(" + scale + "," + scale + ",1)");
+
+            freeMode.x = tx
+            freeMode.y = ty
+            freeMode.scale = scale
+
+            defaultScale = scale
+            if (scale < 0.8) {
+                document.body.classList.add("noTimeline")
+            } else {
+                document.body.classList.remove("noTimeline")
+            }
+            grid.style.transform = "translate(" + (tx * 0.3) + "px, "+ (ty * 0.3) +"px)" + " scale(" + Math.max(scale, 0.8) + ")";
+        } else {
+            zoomto(freeMode.x, freeMode.y, freeMode.scale)
+        }
+    }
+
+    function getGenerations(data, generations) {
+        if (generations === 0) {
+            return [];
+        }
+
+        const result = [];
+
+        function traverse(node, depth) {
+            const currentNode = {
+            id: node.id,
+            first_name: node.first_name,
+            last_name: node.last_name,
+            children: [],
+            };
+
+            if (depth < generations) {
+            for (const child of node.children) {
+                currentNode.children.push(traverse(child, depth + 1));
+            }
+            }
+
+            return currentNode;
+        }
+
+        return traverse(data, 0);
+        }
+
+</script>
+
+<script>
+    const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                const target = entry.target;
+                if (entry.isIntersecting) {
+                    target.classList.add('active');
+                } else {
+                    target.classList.remove('active');
+                }
+            });
+        }, { threshold: 0.1 }); // Adjust the threshold as needed
+
+        document.querySelectorAll('g').forEach(g => {
+            observer.observe(g);
+        });
+</script>
+
+<script>
+    function menu() {
+        history.pushState({ path: realURL }, '', realURL);
+        if(!document.body.classList.contains('menu')) {
+            const newURL = new URL(window.location.href);
+            window.history.pushState({ path: newURL.href }, '', newURL.href + "?a=menu");
+        }
+        
+        applyChanges()
+        menuOpen = !menuOpen
+        detailsOpen = false
+    }
+
+    function applyChanges() {
+        detailsOpen = false
+        menuOpen = false
+        if (window.location.href.includes('/?a=menu')) {
+            document.body.classList.add("menu")
+            menuOpen = true
+        } else {
+            document.body.classList.remove("menu")
+        }
+
+        if (window.location.href.includes('/?a=details')) {
+            document.body.classList.add("moreDetail")
+            detailsOpen = true
+        } else {
+            document.body.classList.remove("moreDetail")
+        }
+    }
+
+    window.addEventListener('popstate', applyChanges);
+
+    function mobile_search() {
+        menuOpen = false;
+        menu();
+        document.querySelector("#menuBox #search input").focus();
+    }
+    
+</script>
+
+<script src="{% static 'script/hammer.min.js' %}"></script>
+<script>
+    const treeEl = document.querySelector("#tree")
+    // const tree = document.getElementById('tree');
+    const treeSvg = document.querySelector('#tree svg');
+</script>
+<!-- <script src="{% static 'script/hammer.js' %}"></script> -->
+
+</body>
+</html>
