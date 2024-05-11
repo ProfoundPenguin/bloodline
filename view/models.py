@@ -15,8 +15,12 @@ class Person(models.Model):
     father = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
     generation = models.IntegerField(blank=True, null=True)
 
+    papa = models.IntegerField(blank=True, null=True)
+
+    tree_width = models.CharField(max_length=50, blank=True, null=True)
+
     def __str__(self):
-        return f"{self.first_name}"
+        return f"{self.first_name} ({self.id})"
 
     def save(self, *args, **kwargs):
         if self.father:

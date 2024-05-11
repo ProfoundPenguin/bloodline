@@ -515,7 +515,10 @@ body.menu #menuBox {
     display: flex;
     padding-left: 10px;
     padding-right: 10px;
-    padding-bottom: 20px;
+    border: 1px solid var(--black);
+    margin-top: 10px;
+    border-radius: 7px;
+    padding-bottom: 10px;
     gap: 10px;
     flex-direction: column;
 }
@@ -702,7 +705,6 @@ body.moreDetail #personaldetail {
     justify-content: space-between;
 }
 #bottomSection span.farsi {
-    text-decoration: underline;
     pointer-events: all;
     cursor: pointer;
 }
@@ -950,6 +952,9 @@ body.noTimeline #timeline {
     stroke-width: 2px;
     z-index: 100 !important;
 }
+.clickable {
+    background-color: rgb(25, 25, 25);
+}
 #tree div.highlight {
     border: 1px solid var(--white);
 }
@@ -966,6 +971,10 @@ body.noTimeline #timeline {
 }
 #tree svg g {
     will-change: transform;
+}
+#tree svg {
+    min-height: 100vh;
+    overflow: visible;
 }
 body.loaded #tree {
     opacity: 1;
@@ -990,6 +999,7 @@ body.loaded #tree {
 }
 div#langaugeSwap {
     pointer-events: none;
+    border: 0px solid var(--black) !important;
 }
 #tree div div:hover {
     border: 1px solid var(--white);
@@ -1102,9 +1112,8 @@ button:active {
 }
 @media (min-width: 550px) {
     #menuBox #options {
-        padding-top: 40px;
-        padding-left: 0px;
-        padding-right: 0px;
+        padding-top: 10px;
+        margin-top: 30px;
     }
     #bottomSection p { 
         font-size: 1.8rem;

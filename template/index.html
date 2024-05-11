@@ -117,13 +117,24 @@
         }
         function loaded() {
             applyChanges()
-            centerChildOnScreen(document.querySelector("#node"+startingId), 0)
+
+            var currentUrl = new URL(window.location.href);
+
+            var toFocus = currentUrl.searchParams.get('focus');
+
+            if (toFocus) {
+                centerChildOnScreen(document.querySelector("#node"+toFocus), 300)
+            } else {
+                centerChildOnScreen(document.querySelector("#node"+startingId), 0)
+            }
+                
+            
             document.body.classList.add("loaded")
             var loadingContainer = document.querySelector('.loading-container');
             loadingContainer.style.display = 'none';
         }
 
-        var startingId = 1
+        var startingId = {{ startingID }}
     </script>
 
 </head>
@@ -306,10 +317,20 @@
     
 
     function moreInfo() {
-        history.pushState({ path: realURL }, '', realURL);
+        var modifiedURL = window.location.href.replace(/[?&]a=details\b/g, '').replace(/\?$/, '');
+
+        if (modifiedURL.includes('/&')) {
+            modifiedURL = modifiedURL.replace('/&', '/?');
+        }
+
+
+        history.replaceState(null, '', modifiedURL);   
         if(!document.body.classList.contains('moreDetail')) {
-            const newURL = new URL(window.location.href);
-            window.history.pushState({ path: newURL.href }, '', newURL.href + '?a=details');
+            var currentUrl = new URL(window.location.href);
+
+            currentUrl.searchParams.set('a', 'details');
+
+            window.history.pushState({}, '', currentUrl);
         }
         
         applyChanges()
@@ -327,6 +348,12 @@
     function getData() {
         return {{tree|safe}}
     };
+
+    function getAllData() {
+        return {{all_data|safe}}
+    };
+
+    console.log(getAllData());
 
     var translateX = 0
     var translateY = 0
@@ -739,9 +766,8 @@
 
 
     function centerChildOnScreen(childElement, duration = 200, scale = 1, id = null) {  
-
         
-        
+        var theId = parseInt(childElement.id.slice(4))
 
         if(id != null) {
             console.log("Not Null");
@@ -753,6 +779,22 @@
         document.body.classList.remove("noTimeline")
         details(parseInt(childElement.id.slice(4)))
         zoomedMode.node = "#"+childElement.id
+
+        
+
+        var currentUrl = new URL(window.location.href);
+
+        currentUrl.searchParams.set('focus', theId);
+
+        window.history.pushState({}, '', currentUrl);
+
+        if (theId == 2 && startingId != 2) {
+            location.href="/1"
+        } else if(theId == 14 && startingId != 14) {
+            location.href="/2"
+        } else if(theId == 15 && startingId != 15) {
+            location.href="/3"
+        }
 
         document.querySelectorAll("#tree div.node").forEach((e)=> {
             if (e.id == childElement.id && e.id != "node"+startingId) {
@@ -795,7 +837,7 @@
             
             var offsetX;
             var offsetY;
-            if (childElement.id === 'node'+startingId) {
+            if (childElement.id === 'node'+1) {
                 var headerHeight = document.querySelector('#whereitbegan').offsetHeight;
 
                 offsetX = (window.innerWidth - (childRect.width)) / 2 - ((childRect.left) - translateX);
@@ -844,9 +886,9 @@
 
     function search(theData, searchString, matches = []) {
         if (theData.farsi_name && (theData.farsi_name.toLowerCase().includes(searchString.toLowerCase()))) {
-            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(data, theData.father).farsi_name +")" + "</li>");
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(fullData, theData.father).farsi_name +")" + "</li>");
         } else if(theData.first_name && (theData.first_name.toLowerCase().includes(searchString.toLowerCase())))  {
-            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(data, theData.father).farsi_name  +")" + "</li>");
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(fullData, theData.father).farsi_name  +")" + "</li>");
         }
         if (theData.children && theData.children.length > 0) {
             for (let i = 0; i < theData.children.length; i++) {
@@ -864,14 +906,14 @@
     searchInput.addEventListener('keyup', ()=> {
         var value = searchInput.value
         searchList.innerHTML = ""
-        search(getData(), value).forEach(data => {
+        search(getAllData(), value).forEach(data => {
             searchList.innerHTML += data
         });
     })
     searchInputMobile.addEventListener('keyup', ()=> {
         var value = searchInputMobile.value
         searchListMobile.innerHTML = ""
-        search(getData(), value).forEach(data => {
+        search(getAllData(), value).forEach(data => {
             searchListMobile.innerHTML += data
         });
     })
@@ -880,7 +922,7 @@
         var value = searchInput.value
         if (value != "") {
             searchList.innerHTML = ""
-            search(getData(), value).forEach(data => {
+            search(getAllData(), value).forEach(data => {
                 searchList.innerHTML += data
             });
         }
@@ -893,16 +935,33 @@
         var value = searchInputMobile.value
         if (value != "") {
             searchListMobile.innerHTML = ""
-            search(getData(), value).forEach(data => {
+            search(getAllData(), value).forEach(data => {
                 searchListMobile.innerHTML += data
             });
         }
     })
 
+    function getPapa(papa_id) {
+        if (papa_id == 2) {
+            return 1
+        } else if(papa_id == 14) {
+            return 2
+        } else if(papa_id == 15) {
+            return 3
+        }
+    }
+
     function dramaticZoom(id) {
         document.body.classList.remove("menu")
         document.querySelector("#searchPlateMobile #results ul").innerHTML = ""
         searchList.innerHTML = ""
+
+        if(document.querySelector('#node' + id) == null) {
+            var origin = window.location.origin;
+
+            // Redirect to the new URL (http://localhost:8000/7)
+            window.location.href = origin + '/' + getPapa(findById(fullData, id).papa) + '/?focus=' + id;
+        }
         
         var node = document.querySelector('#node'+id)
 
@@ -1076,9 +1135,9 @@ function createGrid(width, height, gap) {
 
     // width = (calculateDimensions(getData()).cols * 50) - margin.left - margin.right,
     // width = 15500 - margin.left - margin.right,
-    width = 45000 - margin.left - margin.right,
+    width = {{ tree_width }} - margin.left - margin.right,
     // // height = (calculateDimensions(getData()).rows * 200) - margin.top - margin.bottom;
-    height = (calculateDimensions(getData()).rows * 220) - margin.top - margin.bottom;
+    height = Math.max((calculateDimensions(getData()).rows * 220), 500) - margin.top - margin.bottom;
 
     // height = (calculateDimensions(getData()).rows * 200) - margin.top - margin.bottom;
     var m = [20, 120, 20, 120],
@@ -1137,23 +1196,29 @@ function createGrid(width, height, gap) {
         .enter()
         .append("g");
 
-    node.append("foreignObject")
+        node.append("foreignObject")
     .attr("width", 180)
     .attr("height", 120)
     .attr("fill", "#111111")
-    .attr("x", function (d) { return d.x - 90; })
+    .attr("x", function (d) { return d.x - 75; })
     .attr("y", function (d) { return d.y - 60; })
     .append("xhtml:div")
-    .style("width", "157px")
+    .style("width", "127px")
     .style("height", "120px")
     .append("xhtml:div")
     // .on("click", handleTreeClick)
     .attr("onclick", "centerChildOnScreen(this)")
     .attr("id", function(d) {
-            return `node${d.id}`
-        })
-    .attr("class", "node")
-    .style("width", "157px")
+        return `node${d.id}`;
+    })
+    .attr("class", function(d) {
+    if ([2, 14, 15].includes(d.id)) {
+        return d.id !== startingId ? "node clickable" : "node";
+    } else {
+        return "node";
+    }
+})
+    .style("width", "127px")
     .style("height", "auto")
     .style("padding", "15px 10px")
     .html(function(d) {
@@ -1174,7 +1239,7 @@ function createGrid(width, height, gap) {
     var theBigY = 0
 
     node.each(function(d, i) {
-        if(d.id == startingId) {
+        if(d.id == 1) {
             theBigX = d.x
             theBigY = d.y
         }
@@ -1222,6 +1287,7 @@ function createGrid(width, height, gap) {
         .attr("d", connect);
         
     const data = getData(); // Assuming getData() function holds the provided data
+    const fullData = getAllData();
 
     function findPersonById(data, firstId, secondId) {
         function findPositionOfChild(childrenLength, index) {
@@ -1455,10 +1521,20 @@ function createGrid(width, height, gap) {
 
 <script>
     function menu() {
-        history.pushState({ path: realURL }, '', realURL);
+        var modifiedURL = window.location.href.replace(/[?&]a=menu\b/g, '').replace(/\?$/, '');
+
+        if (modifiedURL.includes('/&')) {
+            modifiedURL = modifiedURL.replace('/&', '/?');
+        }
+
+
+        history.replaceState(null, '', modifiedURL);    
         if(!document.body.classList.contains('menu')) {
-            const newURL = new URL(window.location.href);
-            window.history.pushState({ path: newURL.href }, '', newURL.href + "?a=menu");
+            var currentUrl = new URL(window.location.href);
+
+            currentUrl.searchParams.set('a', 'menu');
+
+            window.history.pushState({}, '', currentUrl);
         }
         
         applyChanges()
@@ -1469,18 +1545,31 @@ function createGrid(width, height, gap) {
     function applyChanges() {
         detailsOpen = false
         menuOpen = false
-        if (window.location.href.includes('/?a=menu')) {
+        if (window.location.href.includes('a=menu')) {
             document.body.classList.add("menu")
             menuOpen = true
         } else {
             document.body.classList.remove("menu")
         }
 
-        if (window.location.href.includes('/?a=details')) {
+        if (window.location.href.includes('a=details')) {
             document.body.classList.add("moreDetail")
             detailsOpen = true
         } else {
             document.body.classList.remove("moreDetail")
+        }
+
+        var queryString = window.location.search;
+
+        // Parse the query string into an object
+        var queryParams = new URLSearchParams(queryString);
+
+        // Get the value of the specified key
+        
+
+        if (queryParams.has('focus')) {
+            var toFocusOnChange = queryParams.get('focus');
+            centerChildOnScreen(document.querySelector("#node"+toFocusOnChange), 300)
         }
     }
 

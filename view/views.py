@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from django.contrib.auth import logout
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 from .models import *
 from .forms import YourModelForm
+from django.http import HttpResponse
 
 def custom_authenticate(password):
     try:
@@ -24,7 +25,8 @@ def custom_authenticate(password):
         return None
 
 # Create your views here.
-def index(request):
+
+def index(request, parameter=None):
     if request.method == 'POST':
         provided_token = request.POST.get('password')
 
@@ -43,14 +45,41 @@ def index(request):
 
             return render(request, 'login.html', data)
     else:
-        latest_rendered_tree = RenderedTree.objects.last() 
-        root_person = Person.objects.first()
+        # Define the possible IDs based on the parameter
+        if parameter == '1':
+            root_person_id = 2
+        elif parameter == '2':
+            root_person_id = 14
+        elif parameter == '3':
+            root_person_id = 15
+        else:
+            # Default option or invalid parameter, use a default root person ID
+            root_person_id = 1  # You can change this to another default ID or handle it differently
 
-        family_tree_data = get_family_tree_data(root_person, 50)
-        latest_tree = latest_rendered_tree.tree
+        if root_person_id == 1:
+            tree_width = get_object_or_404(Person, pk=1).tree_width
+        else:
+            tree_width = get_object_or_404(Person, pk=root_person_id).tree_width
 
-        return render(request, 'index.html', {'tree': family_tree_data, 'rendered_tree': latest_tree})
-    
+        # Get the latest rendered tree
+        latest_rendered_tree = RenderedTree.objects.last()
+
+        # Get the root person based on the determined ID
+        root_person = get_object_or_404(Person, pk=1)
+
+        max_gen = 50
+
+        if root_person_id == 1: 
+            max_gen = 1
+
+
+        # Generate family tree data
+        family_tree_data = get_family_tree_data(root_person, max_gen, focused_child=root_person_id)
+
+        all_data = get_family_tree_data(root_person, 50)
+
+        # Render the template with the data
+        return render(request, 'index.html', {'tree': family_tree_data, 'all_data': all_data, 'startingID': root_person_id, 'tree_width': tree_width})
 
 
 def lab(request):
@@ -143,16 +172,40 @@ def request(request):
             return render(request, 'login.html')
 
     
+def print_children(request):
+    # Get the person with id=2
+    parent = Person.objects.get(id=15)
+    
+    # Define an empty string to store the names
+    names = ''
+    
+    # Recursive function to append children names to the string
+    def print_child_names(person):
+        nonlocal names
+        children = Person.objects.filter(father=person)
+        for child in children:
+            names += f"{child.first_name}\n"
+            # Recursively call the function for each child
+            print_child_names(child)
+
+            child.papa = 15
+            child.save()
+    
+    # Start printing children names
+    print_child_names(parent)
+    
+    # Return a plain text response to the browser
+    return HttpResponse(names, content_type='text/plain')
 
 
-
-def get_family_tree_data(person, max_generations=10, current_generation=0):
+def get_family_tree_data(person, max_generations=10, current_generation=0, focused_child=None):
     data = {
         'id': person.id,
         'first_name': person.first_name,
         'farsi_name': person.farsi_name,
         'father': person.father.id if person.father else 'None',
         'children': [],
+        'papa': 0 if person.papa is None else person.papa,
         'gen': person.generation
     }
 
@@ -161,9 +214,15 @@ def get_family_tree_data(person, max_generations=10, current_generation=0):
 
     # Recursively get data for children up to the specified number of generations
     if current_generation < max_generations:
-        children = Person.objects.filter(father=person)
-        for child in children:
-            data['children'].append(get_family_tree_data(child, max_generations, current_generation + 1))
+        if current_generation == 1:
+            if person.id == focused_child or focused_child == 1 or focused_child == None:
+                children = Person.objects.filter(father=person)
+                for child in children:
+                    data['children'].append(get_family_tree_data(child, max_generations, current_generation + 1,focused_child))
+        else:
+            children = Person.objects.filter(father=person)
+            for child in children:
+                data['children'].append(get_family_tree_data(child, max_generations, current_generation + 1,focused_child))
 
     # Add the count of children and specify "sons" if there are children
     num_children = children.count()
