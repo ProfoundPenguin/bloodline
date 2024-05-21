@@ -511,7 +511,7 @@ body.menu #menuBox {
     font-size: 1rem;
 }
 #menuBox #options {
-    padding-top: 20px;
+    padding-top: 10px;
     display: flex;
     padding-left: 10px;
     padding-right: 10px;
@@ -522,10 +522,22 @@ body.menu #menuBox {
     gap: 10px;
     flex-direction: column;
 }
-#menuBox #options a {
-    font-size: 1.6rem;
+#menuBox #options button {
+    width: 100%;
+    margin-top: 5px;
+    padding: 0px;
+    background-color: #a09174;
+}
+#menuBox #options button a {
+    font-size: 1.4rem;
     color: var(--black);
-    text-decoration: underline;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0px 15px;
+    text-decoration: none;
 }
 #menuBox p#message {
     width: 100%;
@@ -740,6 +752,7 @@ body.farsi #personaldetail #content ul li ul li {
 }
 #personaldetail #content ul #title svg {
     transform: rotate(180deg);
+    transform-origin: center !important;
 }
 #personaldetail #content ul li.active #title svg {
     transform: rotate(0deg);
