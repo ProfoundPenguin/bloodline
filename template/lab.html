@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="HandheldFriendly" content="true" />
     <script src="https://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="//d3js.org/topojson.v1.min.js"></script>
     <style>
         body {
             background-color: #2c2c2c;
@@ -70,7 +71,7 @@
     }
   }
     </style>
-    <title>Dawlad Murad Ancestr</title>
+    <title>Dawlat Murad's Lineage</title>
 
     <link rel="stylesheet" href="{% static 'style/basic.css' %}">
 
@@ -83,6 +84,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
+        var focus_placeholder = 0;
+
         var tx;
         var ty; 
         var detailsOpen = false;
@@ -117,13 +120,24 @@
         }
         function loaded() {
             applyChanges()
-            centerChildOnScreen(document.querySelector("#node"+startingId), 0)
+
+            var currentUrl = new URL(window.location.href);
+
+            var toFocus = currentUrl.searchParams.get('focus');
+
+            if (toFocus) {
+                centerChildOnScreen(document.querySelector("#node"+toFocus), 0)
+            } else {
+                centerChildOnScreen(document.querySelector("#node"+startingId), 0)
+            }
+                
+            
             document.body.classList.add("loaded")
             var loadingContainer = document.querySelector('.loading-container');
             loadingContainer.style.display = 'none';
         }
 
-        var startingId = 1
+        var startingId = {{ startingID }}
     </script>
 
 </head>
@@ -250,8 +264,8 @@
         </div>
         <div id="menuBox">
             <div id="loggedAs">
-                <p>Logged as </p>
-                <h1>A Family Member</h1>
+                <h1>Dawlat Murad's </h1>
+                <p>Lineage</p>
             </div>
             <div id="searchPlateMobile" class="small_screen">
                 <div id="search">
@@ -268,8 +282,10 @@
             <div id="options">
                 <p id="message">قومای عالیقدر با عرض نهایت احترام 
                     اشخاص که اسپیل اسم مبارک شان کدام مشکل بر می‌خرند و یا پسر  نو زاد تولد می‌شود در link زیر در خواست نمایند. تشکر</p>
-                <a href="request">Request a change</a>
-                
+
+                <button>
+                    <a href="request">Request a change</a>
+                </button>
             </div>
             <div id="menuFooter">
                 <p>Web app is designed and built by Habibullah Noori</p>
@@ -278,10 +294,10 @@
     </div>
 
     
-
-    <div id="tree">
-        
-    </div>
+        <div id="tree">
+            
+        </div>
+    
     <div id="bottomSection">
         <div id="shadow"></div>
         <p class="farsi">ترتیب کننده <span class="farsi" onclick="centerChildOnScreen(document.querySelector('#node'+330))">سلطان علي (احمدی)</span> سال ۱۳۶۷ ه.ق</p>
@@ -305,11 +321,21 @@
 <script>
     
 
-    function moreInfo() {
-        history.pushState({ path: realURL }, '', realURL);
-        if(!document.body.classList.contains('moreDetail')) {
-            const newURL = new URL(window.location.href);
-            window.history.pushState({ path: newURL.href }, '', newURL.href + '?a=details');
+    function moreInfo(forceClosed=false) {
+        var modifiedURL = window.location.href.replace(/[?&]a=details\b/g, '').replace(/\?$/, '');
+
+        if (modifiedURL.includes('/&')) {
+            modifiedURL = modifiedURL.replace('/&', '/?');
+        }
+
+
+        history.replaceState(null, '', modifiedURL);   
+        if(!document.body.classList.contains('moreDetail') && forceClosed == false) {
+            var currentUrl = new URL(window.location.href);
+
+            currentUrl.searchParams.set('a', 'details');
+
+            window.history.pushState({}, '', currentUrl);
         }
         
         applyChanges()
@@ -327,6 +353,12 @@
     function getData() {
         return {{tree|safe}}
     };
+
+    function getAllData() {
+        return {{all_data|safe}}
+    };
+
+    console.log(getAllData());
 
     var translateX = 0
     var translateY = 0
@@ -409,7 +441,7 @@
 
     function details(nodeId) {
 
-        const treeDataForDetails = getData()
+        const treeDataForDetails = getAllData()
         document.querySelector("#banner #content #more p#person").innerHTML = findById(treeDataForDetails, nodeId).farsi_name
         var dropDownSvg = `<svg width="16" height="9" viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="8.90625" y="1.19397" width="10.9069" height="1.68853" rx="0.844266" transform="rotate(135 8.90625 1.19397)" fill="#111111"/>
@@ -486,7 +518,7 @@
                 }
 
                 var innerLi = document.createElement('li');
-                innerLi.setAttribute('onclick', "centerChildOnScreen(null, undefined, undefined," + parents[x].id + ")");
+                innerLi.setAttribute('onclick', "dramaticZoom(" + parents[x].id + ")");
                 var langaugeSwap = document.createElement('div')
                 langaugeSwap.setAttribute("id", "langaugeSwap")
                 var h2 = document.createElement('h2');
@@ -562,7 +594,7 @@
 
                     var innerLi = document.createElement('li');
                     
-                    innerLi.setAttribute('onclick', "centerChildOnScreen(null, undefined, undefined," + des[x][y].id + ")");
+                    innerLi.setAttribute('onclick', "dramaticZoom(" + des[x][y].id + ")");
 
                     var langaugeSwap = document.createElement('div')
                     langaugeSwap.setAttribute("id", "langaugeSwap")
@@ -632,7 +664,7 @@
 
             for(var x = 0;x < cousins.length;x++) {
                 var innerLi = document.createElement('li');
-                innerLi.setAttribute('onclick', "centerChildOnScreen(null, undefined, undefined," + cousins[x].id + ")");
+                innerLi.setAttribute('onclick', "dramaticZoom(" + cousins[x].id + ")");
                 var langaugeSwap = document.createElement('div')
                 langaugeSwap.setAttribute("id", "langaugeSwap")
                 var h2 = document.createElement('h2');
@@ -708,6 +740,73 @@
         return []; // Node not found in this branch
     }
 
+    function zoomed() {
+        document.body.classList.remove("search")
+        if (freeViewMode) {
+            const parentElement = document.querySelector("#tree svg")
+
+            const transformValue = window.getComputedStyle(parentElement).transform;
+
+            const match = transformValue.match(/matrix\(([^)]+)\)/);
+
+            if (match) {
+            // Extracting values from the matrix
+                const matrixValues = match[1].split(', ');
+
+                // Getting translateX and translateY values
+                tx = parseFloat(matrixValues[4]);
+                ty = parseFloat(matrixValues[5]);
+
+            }
+
+            var e = d3.event,
+            // Calculate the new translation based on the cursor position
+            tx = e.translate[0],
+            ty = e.translate[1],
+            scale = e.scale;
+
+
+
+            
+            var x = Math.max(Math.min((ty * 100) / (height * scale), 0), -100)
+
+            d3.select("svg g")
+                .attr("style", "transform: translate3d(" + tx + "px," + ty + "px, 0) scale3d(" + scale + "," + scale + ",1)");
+
+            freeMode.x = tx
+            freeMode.y = ty
+            freeMode.scale = scale
+
+            defaultScale = scale
+            if (scale < 0.8) {
+                document.body.classList.add("noTimeline")
+            } else {
+                document.body.classList.remove("noTimeline")
+            }
+            grid.style.transform = "translate(" + (tx * 0.3) + "px, "+ (ty * 0.3) +"px)" + " scale(" + Math.max(scale, 0.8) + ")";
+        } else {
+            zoomto(freeMode.x, freeMode.y, freeMode.scale)
+        }
+    }
+
+    var zoom = d3.behavior.zoom()
+        .scaleExtent([0.1, 5])
+        .on("zoom", zoomed);
+
+    function zoomTo(scale) {
+        console.log(scale);
+        d3.select("svg g").transition()
+            .duration(750)
+            .call(zoom.scale, scale);
+            zoomed();
+    }
+
+    function zoomAndPan(scale, x, y) {
+        d3.select("svg g").transition()
+            .duration(750)
+            .call(zoom.scaleAndTranslate, scale, x, y)
+            .each("end", zoomed); // Update transform after transition ends
+    }
 
     function bringToFront(svgElement) {
         const svg = document.querySelector("#tree svg g g"); // Get the parent SVG
@@ -736,23 +835,37 @@
         .call(zoom.translate(translate).scale(scale).event);
 }
 
-
+    var currentX = 0;
+    var currentY = 0;
 
     function centerChildOnScreen(childElement, duration = 200, scale = 1, id = null) {  
 
-        
-        
+        var theId = parseInt(childElement.id.slice(4))
 
         if(id != null) {
-            console.log("Not Null");
             childElement = document.getElementById("node" + id)
             moreInfo()
         }
 
-        console.log(childElement);
         document.body.classList.remove("noTimeline")
         details(parseInt(childElement.id.slice(4)))
         zoomedMode.node = "#"+childElement.id
+
+        focus_placeholder = theId;
+
+        var currentUrl = new URL(window.location.href);
+
+        currentUrl.searchParams.set('focus', theId);
+
+        window.history.pushState({}, '', currentUrl);
+
+        if (theId == 2 && startingId != 2) {
+            location.href="/1"
+        } else if(theId == 14 && startingId != 14) {
+            location.href="/2"
+        } else if(theId == 15 && startingId != 15) {
+            location.href="/3"
+        }
 
         document.querySelectorAll("#tree div.node").forEach((e)=> {
             if (e.id == childElement.id && e.id != "node"+startingId) {
@@ -778,7 +891,7 @@
 
         // zoomto(offsetX, offsetY, 1);
 
-        function center(scaleOnly, trans = "0.4") {
+        function center(scaleOnly, trans = "0") {
             const transformValue = window.getComputedStyle(parentElement).transform;
 
             const match = transformValue.match(/matrix\(([^)]+)\)/);
@@ -795,7 +908,7 @@
             
             var offsetX;
             var offsetY;
-            if (childElement.id === 'node'+startingId) {
+            if (childElement.id === 'node'+1) {
                 var headerHeight = document.querySelector('#whereitbegan').offsetHeight;
 
                 offsetX = (window.innerWidth - (childRect.width)) / 2 - ((childRect.left) - translateX);
@@ -808,28 +921,65 @@
 
 
             if(!scaleOnly){
-                const translateValue = `translate3d(${offsetX}px, ${offsetY}px, 0px) scale3d(1,1,1)`;
+                const translateValue = `translate3d(${offsetX}px, ${offsetY}px, 0px) scale3d(1, 1, 1)`;
+
                 parentElement.style.transition = trans+"s";
                 parentElement.style.transform = translateValue;
+                
+                // parentElement.style.transition = 0+"s";
                 zoomto(offsetX, offsetY, 1);
             } else {
                 const translateValue = `translate3d(${translateX}px, ${translateY}px, 0px) scale3d(1,1,1)`;
                 parentElement.style.transition = trans+"s";
                 parentElement.style.transform = translateValue;
                 zoomto(translateX, translateY, 1);
+                
+
+                // var offsetX = childRect.left - translateX;
+                // var offsetY = childRect.top - translateY;
+
+                // // Calculate the new translation values
+                // var newTranslateX = childRect.left - (offsetX * 1 / defaultScale);
+                // var newTranslateY = childRect.top - (offsetY * 1 / defaultScale);
+
+                // var theOffsetX = childRect.left - translateX;
+                // var theOffsetY = childRect.top - translateY;
+
+                // var newTranslateX = childRect.left - (theOffsetX * 1 / defaultScale);
+                // var newTranslateY = childRect.top - (theOffsetY * 1 / defaultScale);
+
+                // const newTranslateX = offsetX + ((defaultScale) * offsetX);
+                // const newTranslateY = offsetY + ((defaultScale) * offsetY);
+
+                // const translateValue = `translate3d(${(newTranslateX)}px, ${(newTranslateY)}px, 0px) scale3d(1, 1, 1)`;
+
+                // parentElement.style.transition = trans+"s";
+                // parentElement.style.transform = translateValue;
+                // // parentElement.style.transition = 0+"s";
+                // zoomto(newTranslateX, newTranslateY, 1);
+
+                // zoomTo(1)
+                // zoomAndPan(1, childRect.left, childRect.top)
+
+                // zoom.scaleTo(svg.transition().duration(750), 1.3); 
+
+                // $('#node'+theId).zoomTo({targetsize:0.75, duration:600});
+                // $('#node'+theId).zoomTarget();
             }
             
-           
-
             defaultScale = 1;
         }
         if(defaultScale != 1) {
             center(true, "0")
             setTimeout(()=> {
                 center(false, "0")
-            }, 0)
+            }, 10)
         } else {
-            center(false)
+            if (duration == 0) {
+                center(false, "0")
+            } else {
+                center(false, "0.4")
+            }
         }
     }   
 
@@ -844,9 +994,9 @@
 
     function search(theData, searchString, matches = []) {
         if (theData.farsi_name && (theData.farsi_name.toLowerCase().includes(searchString.toLowerCase()))) {
-            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(data, theData.father).farsi_name +")" + "</li>");
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(fullData, theData.father).farsi_name +")" + "</li>");
         } else if(theData.first_name && (theData.first_name.toLowerCase().includes(searchString.toLowerCase())))  {
-            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(data, theData.father).farsi_name  +")" + "</li>");
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(fullData, theData.father).farsi_name  +")" + "</li>");
         }
         if (theData.children && theData.children.length > 0) {
             for (let i = 0; i < theData.children.length; i++) {
@@ -864,14 +1014,14 @@
     searchInput.addEventListener('keyup', ()=> {
         var value = searchInput.value
         searchList.innerHTML = ""
-        search(getData(), value).forEach(data => {
+        search(getAllData(), value).forEach(data => {
             searchList.innerHTML += data
         });
     })
     searchInputMobile.addEventListener('keyup', ()=> {
         var value = searchInputMobile.value
         searchListMobile.innerHTML = ""
-        search(getData(), value).forEach(data => {
+        search(getAllData(), value).forEach(data => {
             searchListMobile.innerHTML += data
         });
     })
@@ -880,7 +1030,7 @@
         var value = searchInput.value
         if (value != "") {
             searchList.innerHTML = ""
-            search(getData(), value).forEach(data => {
+            search(getAllData(), value).forEach(data => {
                 searchList.innerHTML += data
             });
         }
@@ -893,16 +1043,36 @@
         var value = searchInputMobile.value
         if (value != "") {
             searchListMobile.innerHTML = ""
-            search(getData(), value).forEach(data => {
+            search(getAllData(), value).forEach(data => {
                 searchListMobile.innerHTML += data
             });
         }
     })
 
+    function getPapa(papa_id) {
+        if (papa_id == 2) {
+            return 1
+        } else if(papa_id == 14) {
+            return 2
+        } else if(papa_id == 15) {
+            return 3
+        }
+    }
+
     function dramaticZoom(id) {
+        document.body.classList.remove("moreDetail")
         document.body.classList.remove("menu")
+        moreInfo(true)
+        menu(true)
         document.querySelector("#searchPlateMobile #results ul").innerHTML = ""
         searchList.innerHTML = ""
+
+        if(document.querySelector('#node' + id) == null) {
+            var origin = window.location.origin;
+
+            // Redirect to the new URL (http://localhost:8000/7)
+            window.location.href = origin + '/' + getPapa(findById(fullData, id).papa) + '/?focus=' + id;
+        }
         
         var node = document.querySelector('#node'+id)
 
@@ -927,8 +1097,8 @@ document.addEventListener('mousedown', (event) => {
   document.addEventListener('mousemove', onMouseMove);
 
   function onMouseMove() {
-    const currentX = event.clientX;
-    const currentY = event.clientY;
+    currentX = event.clientX;
+    currentY = event.clientY;
 
     const distanceX = Math.abs(currentX - startX);
     const distanceY = Math.abs(currentY - startY);
@@ -1076,9 +1246,9 @@ function createGrid(width, height, gap) {
 
     // width = (calculateDimensions(getData()).cols * 50) - margin.left - margin.right,
     // width = 15500 - margin.left - margin.right,
-    width = 45000 - margin.left - margin.right,
+    width = {{ tree_width }} - margin.left - margin.right,
     // // height = (calculateDimensions(getData()).rows * 200) - margin.top - margin.bottom;
-    height = (calculateDimensions(getData()).rows * 220) - margin.top - margin.bottom;
+    height = Math.max((calculateDimensions(getData()).rows * 250), 500) - margin.top - margin.bottom;
 
     // height = (calculateDimensions(getData()).rows * 200) - margin.top - margin.bottom;
     var m = [20, 120, 20, 120],
@@ -1137,31 +1307,35 @@ function createGrid(width, height, gap) {
         .enter()
         .append("g");
 
-    node.append("foreignObject")
+        node.append("foreignObject")
     .attr("width", 180)
     .attr("height", 120)
     .attr("fill", "#111111")
-    .attr("x", function (d) { return d.x - 90; })
+    .attr("x", function (d) { return d.x - 75; })
     .attr("y", function (d) { return d.y - 60; })
     .append("xhtml:div")
-    .style("width", "157px")
+    .style("width", "127px")
     .style("height", "120px")
     .append("xhtml:div")
     // .on("click", handleTreeClick)
     .attr("onclick", "centerChildOnScreen(this)")
     .attr("id", function(d) {
-            return `node${d.id}`
-        })
-    .attr("class", "node")
-    .style("width", "157px")
+        return `node${d.id}`;
+    })
+    .attr("class", function(d) {
+    if ([2, 14, 15].includes(d.id)) {
+        return d.id !== startingId ? "node clickable" : "node";
+    } else {
+        return "node";
+    }
+})
+    .style("width", "127px")
     .style("height", "auto")
     .style("padding", "15px 10px")
     .html(function(d) {
         return `
-            <div id="langaugeSwap">
-                <h1 id="nodeH1" class="english" style="font-size: 16px; color: #E6D2AA; text-decoration: underline; text-align: center;">
-                    ${d.first_name}
-                </h1>
+            <div id="langaugeSwap" style="height: 20px">
+                
                 <h1 id="nodeH1" class="farsi" style="font-size: 16px; color: #E6D2AA; text-decoration: underline; text-align: center;">
                     ${d.farsi_name}
                 </h1>
@@ -1174,7 +1348,7 @@ function createGrid(width, height, gap) {
     var theBigY = 0
 
     node.each(function(d, i) {
-        if(d.id == startingId) {
+        if(d.id == 1) {
             theBigX = d.x
             theBigY = d.y
         }
@@ -1222,6 +1396,7 @@ function createGrid(width, height, gap) {
         .attr("d", connect);
         
     const data = getData(); // Assuming getData() function holds the provided data
+    const fullData = getAllData();
 
     function findPersonById(data, firstId, secondId) {
         function findPositionOfChild(childrenLength, index) {
@@ -1348,9 +1523,7 @@ function createGrid(width, height, gap) {
 
     var tree = d3.select("#tree");
 
-    var zoom = d3.behavior.zoom()
-        .scaleExtent([0.1, 5])
-        .on("zoom", zoomed);
+    
 
     tree.call(zoom);
 
@@ -1358,54 +1531,7 @@ function createGrid(width, height, gap) {
         zoom.translate([x, y]).scale(s);
     }
     
-    function zoomed() {
-        document.body.classList.remove("search")
-        if (freeViewMode) {
-            const parentElement = document.querySelector("#tree svg")
-
-            const transformValue = window.getComputedStyle(parentElement).transform;
-
-            const match = transformValue.match(/matrix\(([^)]+)\)/);
-
-            if (match) {
-            // Extracting values from the matrix
-                const matrixValues = match[1].split(', ');
-
-                // Getting translateX and translateY values
-                tx = parseFloat(matrixValues[4]);
-                ty = parseFloat(matrixValues[5]);
-
-            }
-
-            var e = d3.event,
-            // Calculate the new translation based on the cursor position
-            tx = e.translate[0],
-            ty = e.translate[1],
-            scale = e.scale;
-
-
-
-            
-            var x = Math.max(Math.min((ty * 100) / (height * scale), 0), -100)
-
-            d3.select("svg g")
-                .attr("style", "transform: translate3d(" + tx + "px," + ty + "px, 0) scale3d(" + scale + "," + scale + ",1)");
-
-            freeMode.x = tx
-            freeMode.y = ty
-            freeMode.scale = scale
-
-            defaultScale = scale
-            if (scale < 0.8) {
-                document.body.classList.add("noTimeline")
-            } else {
-                document.body.classList.remove("noTimeline")
-            }
-            grid.style.transform = "translate(" + (tx * 0.3) + "px, "+ (ty * 0.3) +"px)" + " scale(" + Math.max(scale, 0.8) + ")";
-        } else {
-            zoomto(freeMode.x, freeMode.y, freeMode.scale)
-        }
-    }
+    
 
     function getGenerations(data, generations) {
         if (generations === 0) {
@@ -1454,11 +1580,21 @@ function createGrid(width, height, gap) {
 </script>
 
 <script>
-    function menu() {
-        history.pushState({ path: realURL }, '', realURL);
-        if(!document.body.classList.contains('menu')) {
-            const newURL = new URL(window.location.href);
-            window.history.pushState({ path: newURL.href }, '', newURL.href + "?a=menu");
+    function menu(force = false) {
+        var modifiedURL = window.location.href.replace(/[?&]a=menu\b/g, '').replace(/\?$/, '');
+
+        if (modifiedURL.includes('/&')) {
+            modifiedURL = modifiedURL.replace('/&', '/?');
+        }
+
+
+        history.replaceState(null, '', modifiedURL);    
+        if(!document.body.classList.contains('menu') && force == false) {
+            var currentUrl = new URL(window.location.href);
+
+            currentUrl.searchParams.set('a', 'menu');
+
+            window.history.pushState({}, '', currentUrl);
         }
         
         applyChanges()
@@ -1466,21 +1602,39 @@ function createGrid(width, height, gap) {
         detailsOpen = false
     }
 
+   
+
     function applyChanges() {
         detailsOpen = false
         menuOpen = false
-        if (window.location.href.includes('/?a=menu')) {
+        if (window.location.href.includes('a=menu')) {
             document.body.classList.add("menu")
             menuOpen = true
         } else {
             document.body.classList.remove("menu")
         }
 
-        if (window.location.href.includes('/?a=details')) {
+        if (window.location.href.includes('a=details')) {
             document.body.classList.add("moreDetail")
             detailsOpen = true
         } else {
             document.body.classList.remove("moreDetail")
+        }
+
+        var queryString = window.location.search;
+
+        // Parse the query string into an object
+        var queryParams = new URLSearchParams(queryString);
+
+        // Get the value of the specified key
+        
+
+        if (queryParams.has('focus')) {
+            var toFocusOnChange = queryParams.get('focus');
+            if (toFocusOnChange != focus_placeholder) {
+                focus_placeholder = toFocusOnChange;
+                centerChildOnScreen(document.querySelector("#node"+toFocusOnChange), 0)
+            }
         }
     }
 
@@ -1495,6 +1649,8 @@ function createGrid(width, height, gap) {
 </script>
 
 <script src="{% static 'script/hammer.min.js' %}"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="{% static 'script/jquery.zoomooz.min.js' %}"></script>
 <script>
     const treeEl = document.querySelector("#tree")
     // const tree = document.getElementById('tree');
