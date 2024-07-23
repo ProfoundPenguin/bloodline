@@ -793,6 +793,20 @@
         }
     }
 
+    function throttle(func, delay) {
+        let lastCall = 0;
+        return function(...args) {
+            const now = new Date().getTime();
+            if (now - lastCall < delay) {
+                return;
+            }
+            lastCall = now;
+            return func(...args);
+        };
+    }
+
+    const throttledZoomed = throttle(zoomed, 42);
+
     let isPanning = false;
     let user_clicked = true;
 
@@ -814,7 +828,7 @@
                     user_clicked = true;
                 }, 100)
             })
-        .on("zoom", zoomed);
+            .on("zoom", throttledZoomed);
 
     function zoomTo(scale) {
         d3.select("svg g").transition()
