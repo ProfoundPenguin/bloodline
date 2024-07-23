@@ -45,6 +45,7 @@ def index(request, parameter=None):
 
             return render(request, 'login.html', data)
     else:
+        second_search = True
         # Define the possible IDs based on the parameter
         if parameter == '1':
             root_person_id = 2
@@ -53,6 +54,7 @@ def index(request, parameter=None):
         elif parameter == '3':
             root_person_id = 15
         else:
+            second_search = False
             # Default option or invalid parameter, use a default root person ID
             root_person_id = 1  # You can change this to another default ID or handle it differently
 
@@ -79,7 +81,7 @@ def index(request, parameter=None):
         all_data = get_family_tree_data(root_person, 50)
 
         # Render the template with the data
-        return render(request, 'index.html', {'tree': family_tree_data, 'all_data': all_data, 'startingID': root_person_id, 'tree_width': tree_width})
+        return render(request, 'index.html', {'tree': family_tree_data, 'all_data': all_data, 'startingID': root_person_id, 'tree_width': tree_width, 'second_search': second_search})
 
 
 def lab(request):
@@ -101,13 +103,13 @@ def lab(request):
 
             return render(request, 'login.html', data)
     else:
-        if request.user.is_authenticated:
-            root_person = Person.objects.first()
-            family_tree_data = get_family_tree_data(root_person, 50)
+        # if request.user.is_authenticated:
+        root_person = Person.objects.first()
+        family_tree_data = get_family_tree_data(root_person, 50)
 
-            return render(request, 'lab.html', {'tree': family_tree_data})
-        else:
-            return render(request, 'login.html')
+        return render(request, 'lab.html', {'tree': family_tree_data})
+        # else:
+        #     return render(request, 'login.html')
 
 def adminlogin(request):
     if request.method == 'POST':

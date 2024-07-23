@@ -231,14 +231,17 @@
                 <img src="{% static 'img/icon/jump.png' %}">
                 More Info
             </button>
-            <div id="searchPlate">
+            <div id="searchPlate" style="flex-direction: row;">
                 <div id="search" class="big_screen">
-                    <input type="text" placeholder="Search">
+                    <input type="text" placeholder="Search / جستجو">
                     <button>
                         <img src="{% static 'img/icon/search.png' %}" alt="Search">
                     </button>
                 </div>
-                <div id="results">
+                <div id="results" class="big_screen">
+                    <div id="noResults">
+                        <p>فرد پیدا نشد</p>
+                    </div>
                     <ul>
                     </ul>
                 </div>
@@ -275,6 +278,9 @@
                     </button>
                 </div>
                 <div id="results">
+                    <div id="noResults">
+                        <p>فرد پیدا نشد</p>
+                    </div>
                     <ul>
                     </ul>
                 </div>
@@ -358,7 +364,6 @@
         return {{all_data|safe}}
     };
 
-    console.log(getAllData());
 
     var translateX = 0
     var translateY = 0
@@ -388,7 +393,6 @@
         }
         if (findById(data, findById(data, findById(data, targetId).father).father) != null) {
         grandfather.children.forEach(child => {
-            console.log(findById(data, targetId).father);
             if (child.id != findById(data, targetId).father) {
                 child.children.forEach(c => {
                     cousins.push(c)
@@ -789,12 +793,30 @@
         }
     }
 
+    let isPanning = false;
+    let user_clicked = true;
+
     var zoom = d3.behavior.zoom()
         .scaleExtent([0.1, 5])
+        .on("zoomstart", () => {
+            
+            user_clicked = false;
+            setTimeout(()=> {
+                if(!user_clicked) {
+                    isPanning = true;
+                }
+            }, 110)
+                
+            })
+            .on("zoomend", () => {
+                setTimeout(()=> {
+                    isPanning = false;
+                    user_clicked = true;
+                }, 100)
+            })
         .on("zoom", zoomed);
 
     function zoomTo(scale) {
-        console.log(scale);
         d3.select("svg g").transition()
             .duration(750)
             .call(zoom.scale, scale);
@@ -839,6 +861,10 @@
     var currentY = 0;
 
     function centerChildOnScreen(childElement, duration = 200, scale = 1, id = null) {  
+
+        if(isPanning) {
+            return
+        }
 
         var theId = parseInt(childElement.id.slice(4))
 
@@ -1003,8 +1029,10 @@
                 search(theData.children[i], searchString, matches);
             }
         }
+
         
-        if (searchString != "") {
+        
+        if (searchString.length > 1) {
             return matches;
         } else {
             return []
@@ -1014,25 +1042,53 @@
     searchInput.addEventListener('keyup', ()=> {
         var value = searchInput.value
         searchList.innerHTML = ""
-        search(getAllData(), value).forEach(data => {
-            searchList.innerHTML += data
-        });
+        searched = search(getAllData(), value)
+        if (searched.length == 0) {
+            if(value.length == 0) {
+                document.querySelector('.big_screen #noResults').classList.remove("ye")
+            } else {
+                document.querySelector('.big_screen #noResults').classList.add("ye")
+            }
+            
+        } else {
+            document.querySelector('.big_screen #noResults').classList.remove("ye")
+            searched.forEach(data => {
+                searchList.innerHTML += data
+            });
+        }
     })
     searchInputMobile.addEventListener('keyup', ()=> {
         var value = searchInputMobile.value
         searchListMobile.innerHTML = ""
-        search(getAllData(), value).forEach(data => {
-            searchListMobile.innerHTML += data
-        });
+        searched = search(getAllData(), value)
+        
+        if (searched.length == 0) {
+            if(value.length == 0) {
+                document.querySelector('.small_screen #noResults').classList.remove("ye")
+            } else {
+                document.querySelector('.small_screen #noResults').classList.add("ye")
+            }
+        } else {
+            document.querySelector('.small_screen #noResults').classList.remove("ye")
+            searched.forEach(data => {
+                searchListMobile.innerHTML += data
+            });
+        }
     })
     searchInput.addEventListener('focusin', ()=> {
         document.body.classList.add("search")
         var value = searchInput.value
         if (value != "") {
             searchList.innerHTML = ""
-            search(getAllData(), value).forEach(data => {
-                searchList.innerHTML += data
-            });
+            searched = search(getAllData(), value)
+            if (searched.length == 0) {
+                document.querySelector('.big_screen #noResults').classList.add("ye")
+            } else {
+                document.querySelector('.big_screen #noResults').classList.remove("ye")
+                searched.forEach(data => {
+                    searchList.innerHTML += data
+                });
+            }
         }
     })
     // searchInput.addEventListener('focusout', ()=> {
@@ -1126,19 +1182,30 @@ document.addEventListener('mouseup', (event) => {
 });
 
 
-    function handleClick(event) {
+function handleClick(event) {
+    try {
         if (!searchPlate.contains(event.target)) {
-            searchList.innerHTML = ""
-            document.body.classList.remove("search")
+            searchList.innerHTML = "";
+            document.body.classList.remove("search");
         }
+    } catch (error) {
+    }
+
+    try {
         if (!searchPlateMobile.contains(event.target)) {
-            searchListMobile.innerHTML = ""
-            document.body.classList.remove("searchMobile")
+            searchListMobile.innerHTML = "";
+            document.body.classList.remove("searchMobile");
         }
+    } catch (error) {
+    }
+
+    try {
         if (!menuBox.contains(event.target)) {
             document.body.classList.remove("menu");
         }
+    } catch (error) {
     }
+}
 </script>
 
 <script>
@@ -1354,20 +1421,44 @@ function createGrid(width, height, gap) {
         }
     })
 
-    console.log(theBigX);
-
     const svgContainer = d3.select("svg g");
 
+    var to_subtract = Math.max((500 - innerWidth), 0) / 2
+
     const foreignObject = svgContainer.append("foreignObject")
-    .attr("width", innerWidth)
+    .attr("width", Math.max(innerWidth, 500))
     .attr("height", innerHeight / 2)
-    .attr("x", theBigX - (innerWidth / 2) + 50) // Adjust x positioning relative to node position
+    .attr("x", theBigX - to_subtract - (innerWidth / 2) + 50) // Adjust x positioning relative to node position
     .attr("y", theBigY + 40) // Adjust y positioning relative to node position
     .attr("z", "-1")
     .attr("style", "pointer-events: none;")
 
     // Append HTML content to foreignObject
     foreignObject.html('<div id="whereitbegan"><div id="langaugeSwap"><h1 class="english">Where it all began</h1><h1 class="farsi">گر تو سنگ سخره و مر مر شوی<br> چون به صاحب دل رسی گوهر شوی</h1></div></div>');
+
+    {% if not second_search %}
+
+    
+
+    const foreignObject2 = d3.select("svg g").append("foreignObject")
+    .attr("width", Math.max(innerWidth, 500))
+    .attr("height", innerHeight / 2)
+    .attr("x", theBigX - to_subtract - (innerWidth / 2) + 50) // Adjust x positioning relative to node position
+    .attr("y", theBigY + 620) // Adjust y positioning relative to node position
+    .attr("z", 30)
+    // .attr("style", "pointer-events: none;")
+
+    // Append HTML content to foreignObject
+    foreignObject2.html(`<div id="search_on_tree" class="small_screen" onclick="mobile_search()"><div id="searchPlateMobile" class="notThis">
+                <div id="search">
+                    <input type="text" placeholder="Search / جستجو">
+                    <button>
+                        <img src="/static/img/icon/search.png" alt="Search">
+                    </button>
+                </div>
+            </div></div>`);
+
+            {% endif %}
     var path = d3.geo.path();
 
     function getBoundsForNode(node) {
@@ -1523,8 +1614,6 @@ function createGrid(width, height, gap) {
 
     var tree = d3.select("#tree");
 
-    
-
     tree.call(zoom);
 
     function zoomto(x,y,s){
@@ -1645,6 +1734,7 @@ function createGrid(width, height, gap) {
         menu();
         document.querySelector("#menuBox #search input").focus();
     }
+
     
 </script>
 

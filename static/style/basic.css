@@ -281,7 +281,7 @@ body.search #banner #searchPlate button {
     transform: translateX(calc(100% + 5px));
     margin-left: 15px;
 }
-#banner #searchPlateMobile {
+#searchPlateMobile {
     width: 100%;
     padding: 6px;
     margin: -6px;
@@ -289,25 +289,62 @@ body.search #banner #searchPlate button {
     min-height: 40px;
     margin-top: 40px;
 }
-#banner #searchPlateMobile #search {
+#searchPlateMobile #search {
     height: 40px;
     background-color: var(--white);
     border: 1px solid var(--black);
     justify-content: space-between;
 }
-#banner #searchPlateMobile #search  input {
+#banner #searchPlateMobile #search input {
     width: 100%;
     color: var(--black);
 }
-#banner #searchPlateMobile #search  input::placeholder {
+#banner #searchPlateMobile #search input::placeholder {
     color: var(--black);
 }
-#banner #searchPlateMobile #search button {
+#searchPlateMobile #search button {
     background-color: transparent;
     padding: 0px;
 }
 #banner #searchPlateMobile #search button img {
     filter: invert();
+}
+#search_on_tree {
+    z-index: 100;
+    position: relative;
+}
+#search_on_tree #searchPlateMobile {
+    /* width: 482px; */
+    width: 340px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#search_on_tree input {
+    pointer-events: none;
+}
+#search_on_tree #searchPlateMobile #search {
+    background-color: var(--light_black);
+    border: 0px solid var(--white);
+    border-radius: 10px;
+    align-items: center;
+    display: flex;
+    padding: 3px 20px;
+}
+#search_on_tree #searchPlateMobile #search button {
+    border: 0px;
+}
+#search_on_tree #searchPlateMobile #search input {
+    background-color: transparent;
+    color: #E6D2AA;
+    border: 0px;
+}
+#search_on_tree #searchPlateMobile #search input::placeholder {
+    
+    color: #E6D2AA;
+}
+#search_on_tree img {
+    width: 20px;
 }
 
 #banner #searchPlate {
@@ -322,7 +359,7 @@ body.search #banner #searchPlate button {
 body.search #banner #searchPlate {
     background-color: var(--white);
 }
-body.searchMobile #banner #searchPlateMobile {
+body.searchMobile #searchPlateMobile {
     background-color: var(--black);
 }
 #banner #results {
@@ -351,7 +388,7 @@ body.searchMobile #banner #searchPlateMobile {
     padding: 10px 0px;
     padding-right: 15px;
 }
-#banner #searchPlateMobile #results ul li {
+#searchPlateMobile #results ul li {
     border: 0px solid var(--black);
     color: var(--white);
 }
@@ -539,8 +576,34 @@ body.menu #menuBox {
     padding: 0px 15px;
     text-decoration: none;
 }
+#banner #results {
+    display: block !important;
+}
+#noResults {
+    max-height: 0px;
+    height: 150px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+    overflow: hidden;
+    justify-content: center;
+}
+#noResults.ye {
+    max-height: 150px;
+}
+#noResults p {
+    color: var(--white);
+    font-size: 1.6rem;
+}
+.big_screen #noResults p {
+    color: var(--black);
+    font-size: 1.6rem;
+}
+
 #menuBox p#message {
     width: 100%;
+    direction: rtl;
     white-space: normal;
     line-height: 150%;
     margin-top: 0px;
