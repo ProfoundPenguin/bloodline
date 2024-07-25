@@ -9,6 +9,9 @@
     <meta name="HandheldFriendly" content="true" />
     <script src="https://d3js.org/d3.v3.js" charset="utf-8"></script>
     <script src="//d3js.org/topojson.v1.min.js"></script>
+
+    
+
     <style>
         body {
             background-color: #2c2c2c;
@@ -214,7 +217,7 @@
         <div class="loading-line">
           <div class="loading-inner-line"></div>
         </div>
-      </div>
+    </div>
     <div id="banner">
         <div id="content">
             <div id="search" onclick="mobile_search()" class="small_screen">
@@ -239,6 +242,7 @@
                     </button>
                 </div>
                 <div id="results" class="big_screen">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="animate-spin text-center big_screen" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
                     <div id="noResults">
                         <p>فرد پیدا نشد</p>
                     </div>
@@ -278,6 +282,7 @@
                     </button>
                 </div>
                 <div id="results">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="animate-spin text-center" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
                     <div id="noResults">
                         <p>فرد پیدا نشد</p>
                     </div>
@@ -326,6 +331,46 @@
 
 <script>
     
+    let worker;
+
+    function initializeWorker() {
+        if (window.Worker) {
+            worker = new Worker("{% static 'script/worker.js' %}");
+
+            worker.onmessage = function(event) {
+                const matches = event.data;
+                // Process matches, e.g., display them in the UI
+                displayMatches(matches);
+                
+            };
+
+            worker.onerror = function(event) {
+                console.error('Worker error:', event.message);
+            };
+        } else {
+            console.log('Web Workers are not supported in your browser.');
+        }
+    }
+
+    function searchWithWorker(theData, searchString, fullData) {
+        if (worker) {
+            loading_result(false)
+            worker.postMessage({ theData, searchString, fullData });
+        } else {
+            console.log('Worker is not initialized.');
+        }
+    }
+
+    function displayMatches(matches) {
+        // Code to display matches in the UI
+        // For example:
+        const resultList = document.getElementById('resultList');
+        resultList.innerHTML = matches.join('');
+    }
+
+    // Initialize the worker when the script is loaded
+    initializeWorker();
+
 
     function moreInfo(forceClosed=false) {
         var modifiedURL = window.location.href.replace(/[?&]a=details\b/g, '').replace(/\?$/, '');
@@ -805,7 +850,7 @@
         };
     }
 
-    const throttledZoomed = throttle(zoomed, 42);
+    const throttledZoomed = throttle(zoomed, 30);
 
     let isPanning = false;
     let user_clicked = true;
@@ -900,10 +945,19 @@
         window.history.pushState({}, '', currentUrl);
 
         if (theId == 2 && startingId != 2) {
+            document.body.classList.remove("loaded")
+            var loadingContainer = document.querySelector('.loading-container');
+            loadingContainer.style.display = 'flex';
             location.href="/1"
         } else if(theId == 14 && startingId != 14) {
+            document.body.classList.remove("loaded")
+            var loadingContainer = document.querySelector('.loading-container');
+            loadingContainer.style.display = 'flex';
             location.href="/2"
         } else if(theId == 15 && startingId != 15) {
+            document.body.classList.remove("loaded")
+            var loadingContainer = document.querySelector('.loading-container');
+            loadingContainer.style.display = 'flex';
             location.href="/3"
         }
 
@@ -1026,6 +1080,9 @@
 </script>
 
 <script>
+    const data = getData(); // Assuming getData() function holds the provided data
+    const fullData = getAllData();
+
     var searchPlate = document.querySelector("#banner #searchPlate")
     var searchInput = document.querySelector("#banner #search input")
     var searchInputMobile = document.querySelector("#banner #searchPlateMobile #search input")
@@ -1033,54 +1090,52 @@
     var searchListMobile = document.querySelector("#banner #searchPlateMobile ul")
 
     function search(theData, searchString, matches = []) {
-        if (theData.farsi_name && (theData.farsi_name.toLowerCase().includes(searchString.toLowerCase()))) {
-            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(fullData, theData.father).farsi_name +")" + "</li>");
-        } else if(theData.first_name && (theData.first_name.toLowerCase().includes(searchString.toLowerCase())))  {
-            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. "+ findById(fullData, theData.father).farsi_name  +")" + "</li>");
+        if (searchString.length <= 1) {
+            return [];
         }
+
+        // Ensure that required properties are present
+        if (theData.farsi_name && theData.farsi_name.toLowerCase().includes(searchString.toLowerCase())) {
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. " + findById(fullData, theData.father).farsi_name + ")" + "</li>");
+        } else if (theData.first_name && theData.first_name.toLowerCase().includes(searchString.toLowerCase())) {
+            matches.push("<li onclick='dramaticZoom(" + theData.id + ")'>" + theData.farsi_name + " (ولد. " + findById(fullData, theData.father).farsi_name + ")" + "</li>");
+        }
+
+        // Recursively search children
         if (theData.children && theData.children.length > 0) {
             for (let i = 0; i < theData.children.length; i++) {
                 search(theData.children[i], searchString, matches);
             }
         }
 
-        
-        
-        if (searchString.length > 1) {
-            return matches;
-        } else {
-            return []
-        }
+        return matches;
     }
 
-    searchInput.addEventListener('keyup', ()=> {
-        var value = searchInput.value
+    function displayMatches(searched) {
+
+        loading_result(true)
+
         searchList.innerHTML = ""
-        searched = search(getAllData(), value)
+        searchListMobile.innerHTML = ""
+
         if (searched.length == 0) {
-            if(value.length == 0) {
-                document.querySelector('.big_screen #noResults').classList.remove("ye")
-            } else {
+            if(searchInput.value != "") {
                 document.querySelector('.big_screen #noResults').classList.add("ye")
+            } else {
+                document.querySelector('.big_screen #noResults').classList.remove("ye")
             }
-            
         } else {
             document.querySelector('.big_screen #noResults').classList.remove("ye")
             searched.forEach(data => {
-                searchList.innerHTML += data
+                    searchList.innerHTML += data
             });
         }
-    })
-    searchInputMobile.addEventListener('keyup', ()=> {
-        var value = searchInputMobile.value
-        searchListMobile.innerHTML = ""
-        searched = search(getAllData(), value)
-        
+
         if (searched.length == 0) {
-            if(value.length == 0) {
-                document.querySelector('.small_screen #noResults').classList.remove("ye")
-            } else {
+            if(searchInputMobile.value != "") {
                 document.querySelector('.small_screen #noResults').classList.add("ye")
+            } else {
+                document.querySelector('.small_screen #noResults').classList.remove("ye")
             }
         } else {
             document.querySelector('.small_screen #noResults').classList.remove("ye")
@@ -1088,26 +1143,63 @@
                 searchListMobile.innerHTML += data
             });
         }
+        
+    }
+
+    function loading_result(loaded) {
+        if(!loaded) {
+            document.querySelector("#banner #results.big_screen #noResults").classList.add("ye")
+            document.querySelector("#banner #results.big_screen #noResults").style.opacity = "0"
+
+            document.querySelector(".small_screen #results").classList.add("loading")
+            document.querySelector("#results.big_screen").classList.add("loading")
+
+            document.querySelector(".small_screen #noResults").classList.add("ye")
+            document.querySelector(".small_screen #noResults").style.opacity = "0"
+        } else {
+            document.querySelector("#banner #results.big_screen #noResults").classList.remove("ye")
+            document.querySelector("#banner #results.big_screen #noResults").style.opacity = "1"
+
+            document.querySelector(".small_screen #results").classList.remove("loading")
+            document.querySelector("#results.big_screen").classList.remove("loading")
+
+            document.querySelector(".small_screen #noResults").classList.remove("ye")
+            document.querySelector(".small_screen #noResults").style.opacity = "1"
+        }
+    }
+
+    searchInput.addEventListener('keyup', ()=> {
+        var value = searchInput.value
+        
+        searchWithWorker(getAllData(), value, getAllData())
+
+        if(value.length == 0) {
+            document.querySelector('.big_screen #noResults').classList.remove("ye")
+        } 
+        
+    })
+    searchInputMobile.addEventListener('keyup', ()=> {
+        var value = searchInputMobile.value
+
+        searchWithWorker(getAllData(), value, getAllData())
+
+        if(value.length == 0) {
+            document.querySelector('.small_screen #noResults').classList.remove("ye")
+        } 
+        
     })
     searchInput.addEventListener('focusin', ()=> {
         document.body.classList.add("search")
         var value = searchInput.value
         if (value != "") {
-            searchList.innerHTML = ""
-            searched = search(getAllData(), value)
-            if (searched.length == 0) {
-                document.querySelector('.big_screen #noResults').classList.add("ye")
-            } else {
-                document.querySelector('.big_screen #noResults').classList.remove("ye")
-                searched.forEach(data => {
-                    searchList.innerHTML += data
-                });
-            }
+            searchWithWorker(getAllData(), value, getAllData())
+        } else {
+            document.querySelector('.big_screen #noResults').classList.remove("ye")
         }
     })
-    // searchInput.addEventListener('focusout', ()=> {
-    //         searchList.innerHTML = ""
-    // })
+    searchInput.addEventListener('focusout', ()=> {
+            searchList.innerHTML = ""
+    })
     searchInputMobile.addEventListener('focusin', ()=> {
         document.body.classList.add("searchMobile")
         var value = searchInputMobile.value
@@ -1500,8 +1592,7 @@ function createGrid(width, height, gap) {
         })
         .attr("d", connect);
         
-    const data = getData(); // Assuming getData() function holds the provided data
-    const fullData = getAllData();
+    
 
     function findPersonById(data, firstId, secondId) {
         function findPositionOfChild(childrenLength, index) {

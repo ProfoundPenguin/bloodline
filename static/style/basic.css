@@ -366,9 +366,44 @@ body.searchMobile #searchPlateMobile {
     max-height: 40vh;
     width: calc(100%);
     overflow-x: visible;
+    position: relative;
     overflow-y: auto;
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+}
+#results svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    z-index: 100;
+    pointer-events: none;
+    animation: rotate 2s linear infinite;
+}
+#results.loading svg {
+    opacity: 1;
+}
+#noResults {
+    transition: 0s;
+}
+#results ul {
+    transition: 0s;
+}
+#results.loading ul {
+    opacity: 0;
+}
+
+@keyframes rotate {
+    0% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(360deg);
+    }
+}
+.small_screen #results svg line {
+    stroke: var(--white);
 }
 #banner #results::-webkit-scrollbar {
     display: none;
@@ -582,15 +617,17 @@ body.menu #menuBox {
 #noResults {
     max-height: 0px;
     height: 150px;
+    opacity: 0;
     width: 100%;
     display: flex;
     align-items: center;
-    transition: 0.2s;
+    /* transition: 0.2s max-height; */
     overflow: hidden;
     justify-content: center;
 }
 #noResults.ye {
     max-height: 150px;
+    opacity: 1;
 }
 #noResults p {
     color: var(--white);
