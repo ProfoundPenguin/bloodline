@@ -1230,6 +1230,9 @@
         searchList.innerHTML = ""
 
         if(document.querySelector('#node' + id) == null) {
+            document.body.classList.remove("loaded")
+            var loadingContainer = document.querySelector('.loading-container');
+            loadingContainer.style.display = 'flex';
             var origin = window.location.origin;
 
             // Redirect to the new URL (http://localhost:8000/7)
