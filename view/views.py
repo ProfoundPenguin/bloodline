@@ -63,10 +63,6 @@ def index(request, parameter=None):
         else:
             tree_width = get_object_or_404(Person, pk=root_person_id).tree_width
 
-        # Get the latest rendered tree
-        latest_rendered_tree = RenderedTree.objects.last()
-
-        # Get the root person based on the determined ID
         root_person = get_object_or_404(Person, pk=1)
 
         max_gen = 50
@@ -81,7 +77,7 @@ def index(request, parameter=None):
         all_data = get_family_tree_data(root_person, 50)
 
         # Render the template with the data
-        return render(request, 'index.html', {'tree': family_tree_data, 'all_data': all_data, 'startingID': root_person_id, 'tree_width': tree_width, 'second_search': second_search})
+        return render(request, 'lab.html', {'tree': family_tree_data, 'all_data': all_data, 'startingID': root_person_id, 'tree_width': tree_width, 'second_search': second_search})
 
 
 def lab(request):
