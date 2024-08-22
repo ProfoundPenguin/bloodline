@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="HandheldFriendly" content="true" />
     <script src="https://d3js.org/d3.v3.js" charset="utf-8"></script>
     <script src="//d3js.org/topojson.v1.min.js"></script>
@@ -329,16 +329,9 @@
 
 
     <div id="graphPlate">
-        <div id="graph">
-            <div id="topShader"></div>
-            <div id="bottomShader"></div>
-            <div id="rightShader"></div>
-            <div id="leftShader"></div>
+         <div id="graph">
+            
         </div>
-        <div id="topShader"></div>
-        <div id="bottomShader"></div>
-        <div id="rightShader"></div>
-        <div id="leftShader"></div>
     </div>
 
 <script>
@@ -1550,6 +1543,22 @@ function createGrid(width, height, gap) {
 
     var margin = { top: 0, right: 150, bottom: 700, left: 150 }
 
+    var webkitX = 0
+    var webkitY = 0
+
+    function isAppleDeviceUsingWebKit() {
+        const userAgent = navigator.userAgent;
+        const isAppleDevice = /iPhone|iPad|iPod|Mac/.test(userAgent);
+        const isWebKit = /AppleWebKit/.test(userAgent) && !/Edge|OPR|Chrome/.test(userAgent);
+
+        return isAppleDevice && isWebKit;
+    }
+
+    if (isAppleDeviceUsingWebKit()) {
+        webkitX = margin.left
+        webkitY = (70 + innerHeight / 2)
+    }
+
     {% if not second_search %}
 
     margin.bottom = 300
@@ -1605,6 +1614,8 @@ function createGrid(width, height, gap) {
         .children(function (d) { return d.children; })  // Adjusted to use 'children' property
         .size([width, height]);    
 
+    
+
     var svg = d3.select(treeCanvas)
         .append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -1624,8 +1635,8 @@ function createGrid(width, height, gap) {
     .attr("width", 180)
     .attr("height", 120)
     .attr("fill", "#111111")
-    .attr("x", function (d) { return d.x - 75; })
-    .attr("y", function (d) { return d.y - 60; })
+    .attr("x", function (d) { return d.x - 75 + webkitX; })
+    .attr("y", function (d) { return d.y - 60 + webkitY; })
     .append("xhtml:div")
     .style("width", "127px")
     .style("height", "120px")
