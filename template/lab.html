@@ -102,6 +102,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
+
+        document.querySelector("html").addEventListener('touchstart', (e) => {
+
+// prevent swipe to navigate gesture
+e.preventDefault();
+});
+
         var focus_placeholder = 0;
 
         var tx;
@@ -310,7 +317,7 @@
                     اشخاص که اسپیل اسم مبارک شان کدام مشکل بر می‌خرند و یا پسر  نو زاد تولد می‌شود در link زیر در خواست نمایند. تشکر</p>
 
                 <button>
-                    <a href="request">Request a change</a>
+                    <a href="/request">Request a change</a>
                 </button>
             </div>
             <div id="menuFooter">
