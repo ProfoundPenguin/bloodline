@@ -1116,7 +1116,7 @@ div#langaugeSwap {
     pointer-events: none;
     border: 0px solid var(--black) !important;
 }
-#tree div div:hover {
+#tree div div div:hover {
     border: 1px solid var(--white);
 }
 #langaugeSwap {

@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="HandheldFriendly" content="true" />
     <script src="https://d3js.org/d3.v3.js" charset="utf-8"></script>
     <script src="//d3js.org/topojson.v1.min.js"></script>
@@ -16,6 +16,9 @@
     <link rel="manifest" href="{% static 'img/favicon/site.webmanifest' %}">
 
     <style>
+        #theSVG {
+            transform-origin: 0px 0px;
+        }
         {% if not second_search %}
 
         @media (min-width: 550px) {
@@ -318,7 +321,7 @@
 
     
         <div id="tree">
-            
+            <div id="theSVG"></div>
         </div>
     
     <div id="bottomSection">
@@ -891,8 +894,10 @@ function linear(t) {
             var borderY = ty;
             var crossedBorder = false;
 
-            var scrollX = ((treeDiv.scrollWidth * scale) - treeDiv.offsetWidth)
-            var scrollY = ((treeDiv.scrollHeight * scale) - treeDiv.offsetHeight)
+            var scrollX = ((treeDiv.scrollWidth) - treeDiv.offsetWidth) * scale
+            var scrollY = ((treeDiv.scrollHeight) - treeDiv.offsetHeight)
+
+            console.log(scrollX, scrollX * scale)
 
             if (ty * -1 > scrollY) {
                 borderY = (-1 * scrollY)
@@ -925,8 +930,8 @@ function linear(t) {
             
             var x = Math.max(Math.min((ty * 100) / (height * scale), 0), -100)
 
-            d3.select("svg g")
-                .attr("style", "transform: scale3d(" + scale + "," + scale + ",1)");
+            d3.select("#theSVG")
+                .attr("style", "transform: scale(" + scale + ")");
 
 
             // console.log(left);
@@ -970,7 +975,7 @@ function linear(t) {
     
 
     var zoom = d3.behavior.zoom()
-        .scaleExtent([0.3, 3])
+        .scaleExtent([0.3, 1.5])
         
         .on("zoomstart", () => {
             
@@ -1130,14 +1135,14 @@ function linear(t) {
                 offsetX = (window.innerWidth - (childRect.width)) / 2 - ((childRect.left) - translateX);
                 offsetY = 0;
             } else {
-                offsetX = (window.innerWidth - childRect.width) / 2 - ((childRect.left) - translateX);
-                offsetY = (window.innerHeight - childRect.height) / 2 - ((childRect.top) - translateY);
+                offsetX = (window.innerWidth - childRect.width) / 2 - ((childRect.left) - translateX) + webkitX;
+                offsetY = (window.innerHeight - childRect.height) / 2 - ((childRect.top) - translateY) + webkitY;
             }
 
 
 
             if(!scaleOnly){
-                const translateValue = `scale3d(1, 1, 1)`;
+                const translateValue = `scale(1)`;
 
                 parentElement.style.transition = trans+"s";
                 parentElement.style.transform = translateValue;
@@ -1146,7 +1151,7 @@ function linear(t) {
                 parentElement.style.transition = 0+"s";
                 zoomto(offsetX, offsetY, 1);
             } else {
-                const translateValue = `scale3d(1,1,1)`;
+                const translateValue = `scale(1)`;
                 parentElement.style.transition = trans+"s";
                 parentElement.style.transform = translateValue;
                 teleport(translateX, translateY, false, trans)
@@ -1169,7 +1174,7 @@ function linear(t) {
                 // const newTranslateX = offsetX + ((defaultScale) * offsetX);
                 // const newTranslateY = offsetY + ((defaultScale) * offsetY);
 
-                // const translateValue = `translate3d(${(newTranslateX)}px, ${(newTranslateY)}px, 0px) scale3d(1, 1, 1)`;
+                // const translateValue = `translate3d(${(newTranslateX)}px, ${(newTranslateY)}px, 0px) scale(1)`;
 
                 // parentElement.style.transition = trans+"s";
                 // parentElement.style.transform = translateValue;
@@ -1539,7 +1544,7 @@ function createGrid(width, height, gap) {
         }
         }
 
-    const treeCanvas = document.querySelector("#tree"); // Assuming treeCanvas is an element with id "treeCanvas"
+    const treeCanvas = document.querySelector("#tree #theSVG"); // Assuming treeCanvas is an element with id "treeCanvas"
 
     var margin = { top: 0, right: 150, bottom: 700, left: 150 }
 
@@ -1602,7 +1607,7 @@ function createGrid(width, height, gap) {
         // Apply the transform to center the node
         d3.select("svg g").transition()
             .duration(750) // You can adjust the duration as needed
-            .style('transform', 'translate3d(' + translateX + 'px,' + translateY + 'px, 0px) scale3d(1,1,1)');
+            .style('transform', 'translate3d(' + translateX + 'px,' + translateY + 'px, 0px) scale(1)');
     }
 
     var defaultScale = 1;
