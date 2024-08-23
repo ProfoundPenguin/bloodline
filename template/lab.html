@@ -982,7 +982,7 @@ function linear(t) {
     
 
     var zoom = d3.behavior.zoom()
-        .scaleExtent([0.3, 1.5])
+        .scaleExtent([0.25, 1.5])
         
         .on("zoomstart", () => {
             
@@ -1107,7 +1107,7 @@ function linear(t) {
             }
         })
 
-        const parentElement = document.querySelector("#tree svg g");
+        const parentElement = document.querySelector("#tree #theSVG");
         const graph = document.querySelector("#graphPlate #graph");
 
         // zoomto(offsetX, offsetY, 1);
@@ -1146,8 +1146,6 @@ function linear(t) {
                 offsetY = (window.innerHeight - childRect.height) / 2 - ((childRect.top) - translateY) + webkitY;
             }
 
-
-
             if(!scaleOnly){
                 const translateValue = `scale(1)`;
 
@@ -1163,38 +1161,6 @@ function linear(t) {
                 parentElement.style.transform = translateValue;
                 teleport(translateX, translateY, false, trans)
                 zoomto(translateX, translateY, 1);
-                
-
-                // var offsetX = childRect.left - translateX;
-                // var offsetY = childRect.top - translateY;
-
-                // // Calculate the new translation values
-                // var newTranslateX = childRect.left - (offsetX * 1 / defaultScale);
-                // var newTranslateY = childRect.top - (offsetY * 1 / defaultScale);
-
-                // var theOffsetX = childRect.left - translateX;
-                // var theOffsetY = childRect.top - translateY;
-
-                // var newTranslateX = childRect.left - (theOffsetX * 1 / defaultScale);
-                // var newTranslateY = childRect.top - (theOffsetY * 1 / defaultScale);
-
-                // const newTranslateX = offsetX + ((defaultScale) * offsetX);
-                // const newTranslateY = offsetY + ((defaultScale) * offsetY);
-
-                // const translateValue = `translate3d(${(newTranslateX)}px, ${(newTranslateY)}px, 0px) scale(1)`;
-
-                // parentElement.style.transition = trans+"s";
-                // parentElement.style.transform = translateValue;
-                // // parentElement.style.transition = 0+"s";
-                // zoomto(newTranslateX, newTranslateY, 1);
-
-                // zoomTo(1)
-                // zoomAndPan(1, childRect.left, childRect.top)
-
-                // zoom.scaleTo(svg.transition().duration(750), 1.3); 
-
-                // $('#node'+theId).zoomTo({targetsize:0.75, duration:600});
-                // $('#node'+theId).zoomTarget();
             }
             
             defaultScale = 1;
